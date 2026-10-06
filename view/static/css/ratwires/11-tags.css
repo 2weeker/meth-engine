@@ -1,0 +1,65 @@
+/* --- tags ---------------------------------------------------------------------
+   Only while config.yaml turns tags on: a post's tags in its header, where
+   the board tag was, each a link to every post carrying it; and the tags
+   field on top of the message box. */
+
+/* A tag chip takes the board tag's face (.thread_board), and reads as a
+   button rather than a message link. */
+.post_header .thread_tag {
+	font-style: normal;
+	text-decoration: none;
+	color: var(--theme-text-strong);
+}
+
+.post_header .thread_tag + .thread_tag {
+	margin-left: .3em;
+}
+
+.post_header .thread_tag:hover,
+.post_header .thread_tag:focus {
+	text-decoration: underline;
+}
+
+/* The tag the page is filtered by: choosing it again clears the filter. */
+.post_header .thread_tag.current_tag {
+	outline: 1px solid var(--theme-accent);
+	outline-offset: -1px;
+}
+
+/* The tags field, on top of the message box: as wide as the form, which is
+   as wide as the message box. */
+.form .tags_input {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	margin-bottom: 6px;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	/* The field takes a full row of its own above the message box, and
+	   dresses like it. */
+	.form .tags_input {
+		order: 0;
+		flex: 1 1 100%;
+		width: auto;
+		margin: 0;
+		padding: 7px 9px;
+		border: 2px inset var(--theme-bevel-light);
+		border-radius: 0;
+		background-color: var(--theme-field);
+		color: var(--theme-input-text);
+		font-family: var(--theme-field-font);
+		font-size: 18px; /* <16px makes iOS zoom the page on focus */
+	}
+
+	/* Handhelds hide the header's board tag; its tags stay, in the row. */
+	.post_header .thread_board.thread_tag {
+		display: inline-block;
+		margin-left: .4em;
+		padding: 0 5px;
+		line-height: 1.4;
+		/* The dark bevel: the desktop face is lost against the handheld
+		   header, which is close to the chrome's own colour. */
+		background-color: var(--theme-bevel-dark);
+	}
+}

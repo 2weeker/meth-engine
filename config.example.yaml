@@ -1,0 +1,34 @@
+title: meth
+description: a textboard powered by the Mind Engaging Text Hub engine
+banner:
+  text: "test text"
+  addresses:
+    - label: Bitcoin
+      address: 1ExampleBitcoinAddressReplaceMe
+  links:
+    - label: TOR
+      url: http://exampleonionaddressreplaceme.onion/
+captcha: true
+captcha_lockout:
+  posting:
+    failures: 5
+    lockout: 1m
+  login:
+    failures: 3
+    lockout: 15m
+captcha_post_limit:
+  posts: 10
+  within: 1m
+  wait: 60s
+max_chars: 2048
+max_posts: 255
+tags:
+  max: 3
+  length: 16
+about: >-
+  A singleboard 2channel-inspired anonymous textboard powered by METH, the Mind Engaging Text Hub engine. There is a {max_posts} posting limit, after which the oldest post that has been at the top level the longest is purged.
+webring:
+- label: example
+  url: https://example.com
+- label: example2
+  url: https://example2.com

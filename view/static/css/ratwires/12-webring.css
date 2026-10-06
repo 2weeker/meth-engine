@@ -1,0 +1,39 @@
+/* --- webring ------------------------------------------------------------------
+   config.yaml's links to friendly sites, in a box of their own under the
+   collapsed post-root's stats line. Like that line, it is shown only while
+   the post-root is collapsed, and only on regular screens: handhelds never
+   collapse the post-root. */
+
+.webring {
+	display: none;
+}
+
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	.board_container > details.root_post:not([open]) ~ .webring {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: baseline;
+		gap: 6px 14px;
+		/* The stats line's own width: it sits 1em in from each side. */
+		margin: 6px 1em .5em;
+		padding: 8px 12px;
+		border: 2px solid var(--theme-post-border);
+		border-radius: 4px;
+		background-color: var(--theme-chrome);
+	}
+}
+
+.webring_title {
+	font-weight: bold;
+	color: var(--theme-text-strong);
+}
+
+.webring_link {
+	color: var(--theme-text);
+}
+
+.webring_link:hover,
+.webring_link:focus {
+	color: var(--theme-text-strong);
+}

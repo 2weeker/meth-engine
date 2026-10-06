@@ -1,0 +1,71 @@
+package view
+
+templ Post(v *PostView) {
+	<details class={ "post", templ.KV("selected_post", v.Selected) } id={ "post-" + v.IDString() } open="true">
+		<summary class="post_header">
+			if v.Sage {
+				<span class="post_sage">sage</span>
+			}
+			if v.Mod {
+				<a href={ "/mod?id=" + v.IDString() + "&ip=" + v.IP } id={ "mod-" + v.IDString() }>Mod</a>
+			}
+			<a href={ v.ReplyHref } id={ "reply-" + v.IDString() }>Reply</a>{ " " }
+			@PosterID(v)
+			if v.PosterID != "" {
+				{ " " }
+			}
+			<span class="post_meta">
+				{ v.IDString() }
+				if v.Dubs != "" {
+					<span class="digit_check">{ v.Dubs }</span>
+				}
+				{ v.Time }
+				if v.ParentID != nil {
+					<a href={ v.ParentHref } class="backlink backlink_parent">&gt;&gt;{ v.ParentString() }</a>
+				}
+				for _, t := range v.Tags {
+					{ " " }
+					<a
+						href={ t.Href }
+						class={ "thread_board", "thread_tag", templ.KV("current_tag", t.Current) }
+						if t.Current {
+							aria-current="page"
+						}
+					>{ t.Name }</a>
+				}
+			</span>
+		</summary>
+		<div class={ "post_content", templ.KV("post_content_saged", v.Sage) }>
+			<p class="post_text">@templ.Raw(string(v.Message))</p>
+			if len(v.Children) > 0 {
+				<div class="backlinks">
+					for _, c := range v.Children {
+						{ " " }
+						<a href={ "#post-" + c.IDString() } class="backlink backlink_reply">&gt;&gt;{ c.IDString() }</a>
+					}
+				</div>
+			}
+			if v.PosterID != "" || v.Sage {
+				<div class="post_signature">
+					@PosterID(v)
+					if v.Sage {
+						<span class="post_sage post_sage_mark">sage</span>
+					}
+				</div>
+			}
+		</div>
+		for _, c := range v.Children {
+			@Post(c)
+		}
+	</details>
+}
+
+templ PosterID(v *PostView) {
+	if v.PosterID != "" {
+		if v.IDLink {
+			<a href={ "/id/" + v.PosterID } class="post_poster_id" title="Every post by this ID">ID:{ v.PosterID }</a>
+		} else {
+			<span class="post_poster_id">ID:{ v.PosterID }</span>
+		}
+	}
+}

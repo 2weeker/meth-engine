@@ -1,0 +1,58 @@
+package view
+
+import "strconv"
+
+templ ModFilter(p ModPage) {
+	if p.Status != "" {
+		<p class="mod_status">{ p.Status }</p>
+	}
+	<div class="panel filter_panel">
+		<table class="filter_table">
+			<tr class="filter_table_row">
+				<th class="filter_table_header">ID</th>
+				<th class="filter_table_header">Pattern</th>
+				<th class="filter_table_header">On a match</th>
+				<th class="filter_table_header">Note</th>
+				<th class="filter_table_header">Hits</th>
+				<th class="filter_table_header">Last hit</th>
+			</tr>
+			for _, f := range p.Filters {
+				<tr class={ "filter_table_row", templ.KV("filter_broken", f.Broken) }>
+					<td class="filter_table_data">{ strconv.FormatInt(f.ID, 10) }</td>
+					<td class="filter_table_data filter_pattern">
+						{ f.Regex }
+						if f.Broken {
+							{ " " }<strong>(broken: skipped)</strong>
+						}
+					</td>
+					<td class="filter_table_data">{ f.ActionLabel() }</td>
+					<td class="filter_table_data filter_note">{ f.Note }</td>
+					<td class="filter_table_data">{ strconv.FormatInt(f.Hits, 10) }</td>
+					<td class="filter_table_data">{ f.LastHit() }</td>
+				</tr>
+			}
+		</table>
+		<form action="/filter/create" method="post" class="filter_form">
+			<input type="hidden" name="_csrf" value={ p.CSRF }/>
+			<input type="text" name="filter_regex" id="filter_regex" placeholder="pattern (regex)" autocomplete="off" value={ p.FilterForm.Regex }/><br/>
+			<select name="filter_action" id="filter_action" aria-label="On a match">
+				<option value="reject" selected?={ p.FilterForm.Action != "replace" && p.FilterForm.Action != "ban" }>reject the post</option>
+				<option value="replace" selected?={ p.FilterForm.Action == "replace" }>replace the matched text</option>
+				<option value="ban" selected?={ p.FilterForm.Action == "ban" }>reject the post and ban the address</option>
+			</select><br/>
+			<div class="filter_field filter_field_replace">
+				<input type="text" name="filter_replacement" id="filter_replacement" placeholder="replace with (blank deletes the text)" autocomplete="off" value={ p.FilterForm.Replacement }/>
+			</div>
+			<div class="filter_field filter_field_ban">
+				<input type="number" name="filter_ban_days" id="filter_ban_days" placeholder="ban days (blank = permanent)" min="0" autocomplete="off" value={ p.FilterForm.BanDays }/>
+			</div>
+			<input type="text" name="filter_note" id="filter_note" placeholder="note: why this filter exists" autocomplete="off" value={ p.FilterForm.Note }/><br/>
+			<input type="submit" value="add filter" id="add-filter"/>
+		</form>
+		<form action="/filter/delete" method="post">
+			<input type="hidden" name="_csrf" value={ p.CSRF }/>
+			<input type="number" name="filter_id" id="filter_id" placeholder="id" autocomplete="off"/><br/>
+			<input type="submit" value="delete filter" id="delete-filter"/>
+		</form>
+	</div>
+}

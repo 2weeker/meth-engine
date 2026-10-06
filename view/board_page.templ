@@ -1,0 +1,62 @@
+package view
+
+templ BoardPage(p Page) {
+	<nav class="mobile_navigation">
+		<div class="mobile_board_jump">
+			<a href="#board_top" class="board_jump_button jump_up" title="Jump to top"></a>
+			<a href="#board_bottom" class="board_jump_button jump_down" title="Jump to bottom"></a>
+		</div>
+	</nav>
+	<div class="posting_deck">
+		@ComposerForm(p)
+	</div>
+	<nav class="board_jump">
+		<a href="#board_top" class="board_jump_button jump_up" title="Jump to top"></a>
+		<a href="#board_bottom" class="board_jump_button jump_down" title="Jump to bottom"></a>
+	</nav>
+	<div class="board_container">
+		if p.History != "" {
+			<div class="post root_post selected_post overboard history" id="post-root">
+				<span id="board_top" class="board_anchor"></span>
+				if len(p.Threads) > 0 {
+					for _, t := range p.Threads {
+						@Post(t)
+					}
+				} else {
+					<p class="overboard_empty">No posts by this ID.</p>
+				}
+				<span id="board_bottom" class="board_anchor"></span>
+			</div>
+		} else {
+			<details class={ "post", templ.KV("selected_post", p.ReplyTo == ""), "root_post" } id="post-root" open="true">
+				<summary class="post_header"><a href="/">Post</a></summary>
+				<span id="board_top" class="board_anchor"></span>
+				<div class="post_content">
+					<p class="post_text"></p>
+					if len(p.Threads) > 0 {
+						<div class="backlinks">
+							for _, t := range p.Threads {
+								{ " " }
+								<a href={ "#post-" + t.IDString() } class="backlink backlink_reply">&gt;&gt;{ t.IDString() }</a>
+							}
+						</div>
+					}
+				</div>
+				for _, t := range p.Threads {
+					@Post(t)
+				}
+				<span id="board_bottom" class="board_anchor"></span>
+			</details>
+		}
+		<div class="post_header collapsed_board_header">{ p.Stats }</div>
+		if len(p.Site.Webring) > 0 {
+			<nav class="webring" aria-label="Webring">
+				<span class="webring_title">Webring:</span>
+				for _, l := range p.Site.Webring {
+					{ " " }
+					<a href={ l.URL } class="webring_link">{ l.Label }</a>
+				}
+			</nav>
+		}
+	</div>
+}

@@ -1,0 +1,169 @@
+/* --- the mod area ----------------------------------------------------------
+   Every /mod screen renders through layouts/mod.ecr, which drops the banner
+   and the theme switcher and wraps the content in this element. Centring is
+   done here rather than on the panel so a status line and the Back link
+   centre with the panel as one stack.
+
+   min-height rather than height: on handheld the generic content-well rule
+   inside the breakpoint sets `min-height: 0` on every body child and wins on
+   specificity (body > * beats a single class), but there the body is already a
+   full-height flex column and this element is its only child, so it fills the
+   screen anyway and the centring still lands.
+
+   `safe center` matters for the taller panels -- the ban and user tables. On
+   handheld this element is the scroll container with a bounded height, and
+   plain `center` on an overflowing column pushes the first row off the top
+   edge where it cannot be scrolled back to. `safe` falls back to flex-start
+   the moment the content stops fitting. The unprefixed `center` above it is
+   the fallback for browsers that don't parse the keyword. */
+.mod_screen {
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	justify-content: safe center;
+	gap: 10px;
+	padding: 16px;
+	text-align: center;
+}
+
+/* The panels hold forms and tables; only the stack around them is centred.
+   Width is set here rather than left to shrink-to-fit: a panel sized by its
+   widest field is a narrow strip in the middle of an empty screen. `min()`
+   keeps it inside the viewport on a phone, where 32em would overflow. */
+.mod_screen > .panel {
+	text-align: left;
+	box-sizing: border-box;
+	width: min(32em, 100%);
+}
+
+/* --- the login --------------------------------------------------------------
+   The site's logo at the head of the form, above the username, and the form
+   centred: the logo, its fields, the captcha and the button each on the
+   panel's middle line, unlike the other panels, which hold tables and long
+   forms. */
+/* A line of its own, so the username field starts on the next one. */
+.mod_logo_link {
+	display: block;
+	width: max-content;
+	max-width: 100%;
+	margin: 0 auto 8px;
+}
+
+.mod_logo {
+	display: block;
+	height: 170px;
+	width: auto;
+	max-width: 100%;
+}
+
+.mod_screen > .login_panel {
+	text-align: center;
+}
+
+.login_panel .captcha_form {
+	align-items: center;
+}
+
+.login_panel .captcha_form img {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.login_panel .captcha_picks {
+	justify-content: center;
+}
+
+/* --theme-accent is purple on ratwires' purple ground, so the failure notice is
+   left in the body text colour and carried by weight instead. */
+.login_failed {
+	margin: 0;
+	font-weight: bold;
+	color: var(--theme-text);
+}
+
+/* The mod area sits outside the board chrome and would otherwise have no way
+   home. */
+.back_link {
+	display: inline-block;
+	margin-top: 4px;
+}
+
+
+/* --- the filter screen ------------------------------------------------------
+   Six columns do not fit the panel's 32em, so this panel is wider. The
+   headings never break inside a word, and on a phone the table scrolls
+   sideways inside the panel when it runs out of room. */
+.mod_screen > .filter_panel {
+	width: min(60em, 100%);
+	overflow-x: auto;
+}
+
+.filter_table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 8px;
+}
+
+.filter_table_header,
+.filter_table_data {
+	padding: 2px 8px 2px 0;
+	text-align: left;
+	vertical-align: top;
+}
+
+.filter_table_header {
+	white-space: nowrap;
+}
+
+/* A pattern has no spaces to break at, so it may break anywhere. A note is
+   words: it breaks between them, and inside one only when that word alone
+   is wider than its column. */
+.filter_pattern {
+	overflow-wrap: anywhere;
+}
+
+.filter_note {
+	overflow-wrap: break-word;
+}
+
+.filter_pattern {
+	font-family: var(--theme-mono-font, monospace);
+}
+
+/* A pattern that no longer compiles is skipped; say so where it is listed. */
+.filter_broken {
+	opacity: .6;
+}
+
+/* The one <select> in the application, dressed as the inputs beside it. Its
+   font is left alone, as theirs is, so it is the same size they are. */
+.panel select {
+	color: var(--theme-input-text);
+	background-color: var(--theme-field);
+}
+
+.filter_panel input[type=text],
+.filter_panel input[type=number],
+.filter_panel select {
+	box-sizing: border-box;
+	width: min(28em, 100%);
+}
+
+/* The replacement belongs to "replace" and the ban length to "ban", so each
+   is shown only while its action is the one selected. No script: :has() sees
+   which <option> is checked, and the browser re-evaluates it the moment the
+   choice changes. Inside @supports, so a browser without :has() hides
+   nothing and shows both fields, as the form did before. */
+@supports selector(:has(*)) {
+	.filter_field {
+		display: none;
+	}
+
+	.filter_form:has(option[value="replace"]:checked) .filter_field_replace,
+	.filter_form:has(option[value="ban"]:checked) .filter_field_ban {
+		display: block;
+	}
+}

@@ -1,0 +1,38 @@
+package view
+
+import "strconv"
+
+templ ModTags(p ModPage) {
+	if p.Status != "" {
+		<p class="mod_status">{ p.Status }</p>
+	}
+	<div class="panel tag_panel">
+		if !p.TagsOn {
+			<p class="tag_panel_empty">Tags are turned off. Set tags in config.yaml to turn them on.</p>
+		}
+		if len(p.Tags) > 0 {
+			<table class="filter_table">
+				<tr class="filter_table_row">
+					<th class="filter_table_header">Tag</th>
+					<th class="filter_table_header">Posts</th>
+					<th class="filter_table_header"></th>
+				</tr>
+				for _, t := range p.Tags {
+					<tr class="filter_table_row">
+						<td class="filter_table_data">{ t.Tag }</td>
+						<td class="filter_table_data">{ strconv.Itoa(t.Posts) }</td>
+						<td class="filter_table_data">
+							<form action="/tags/delete" method="post">
+								<input type="hidden" name="_csrf" value={ p.CSRF }/>
+								<input type="hidden" name="tag" value={ t.Tag }/>
+								<input type="submit" value="delete"/>
+							</form>
+						</td>
+					</tr>
+				}
+			</table>
+		} else if p.TagsOn {
+			<p class="tag_panel_empty">no current tags</p>
+		}
+	</div>
+}

@@ -1,0 +1,45 @@
+package view
+
+import "strconv"
+
+templ ModBan(p ModPage) {
+	if p.Status != "" {
+		<p class="mod_status">{ p.Status }</p>
+	}
+	<div class="panel">
+		<table class="ban_table">
+			<tr class="ban_table_row">
+				<th class="ban_table_header">ID</th>
+				<th class="ban_table_header">IP address</th>
+				<th class="ban_table_header">Reason</th>
+				<th class="ban_table_header">Expires</th>
+			</tr>
+			for _, b := range p.Bans {
+				<tr class="ban_table_row">
+					<td class="ban_table_data">{ strconv.FormatInt(b.ID, 10) }</td>
+					<td class="ban_table_data">{ b.IPAddress }</td>
+					<td class="ban_table_data">{ b.Reason }</td>
+					<td class="ban_table_data">
+						if b.ExpiresAt != nil {
+							{ b.ExpiresAt.UTC().Format("2006-01-02 15:04") }
+						} else {
+							never
+						}
+					</td>
+				</tr>
+			}
+		</table>
+		<form action="/ban/delete" method="post">
+			<input type="hidden" name="_csrf" value={ p.CSRF }/>
+			<input type="text" name="ip_address" id="ip_address" placeholder="ip address" value={ p.IP }/>
+			<input type="submit" value="delete" id="delete"/>
+		</form>
+		<form action="/ban/create" method="post">
+			<input type="hidden" name="_csrf" value={ p.CSRF }/>
+			<input type="text" name="ip_address" id="ip_address_new" placeholder="ip address" value={ p.IP }/>
+			<input type="text" name="reason" id="reason" placeholder="reason (optional)"/>
+			<input type="number" name="days" id="days" placeholder="days (blank = permanent)" min="1"/>
+			<input type="submit" value="create" id="create"/>
+		</form>
+	</div>
+}

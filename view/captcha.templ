@@ -1,0 +1,11 @@
+package view
+
+import "strconv"
+
+templ CaptchaForm(c *Captcha) {
+	<div class="captcha_form">
+		<img src={ "/captcha/" + c.ID + ".png" } alt="captcha" width={ strconv.Itoa(c.Width) } height={ strconv.Itoa(c.Height) } loading="lazy"/>
+		<input type="hidden" name="captcha_id" value={ c.ID }/>
+		<input type="text" name="captcha_value" placeholder="captcha" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"/>
+	</div>
+}

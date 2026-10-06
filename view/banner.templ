@@ -1,0 +1,25 @@
+package view
+
+templ Banner(p Page) {
+	<div class="banner">
+		<a href="/" class="banner_logo_link"><img class="banner_logo" src={ p.Site.LogoURL() } alt={ p.Site.Title }/></a>
+		<h4 id="main info">
+			if p.Site.Banner.Text != "" {
+				{ p.Site.Banner.Text }{ " " }
+			}
+			for i, a := range p.Site.Banner.Addresses {
+				if i > 0 {
+					{ " " }
+				}
+				{ a.Label }: { a.Address }
+			}
+			for _, l := range p.Site.Banner.Links {
+				{ " " }<a href={ l.URL }>{ l.Label }</a>
+			}
+		</h4>
+		<details id="about_opener">
+			<summary id="about_button">About</summary>
+			<p id="about">@templ.Raw(string(p.Site.AboutHTML))</p>
+		</details>
+	</div>
+}

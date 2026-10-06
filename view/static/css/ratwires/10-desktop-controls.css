@@ -1,0 +1,170 @@
+/* --- the theme selector's label (desktop) ---------------------------------
+   On a regular screen the grip also reads "themes", so what it opens is not
+   a guess. Generated text: the summary already carries aria-label="Themes",
+   which is what assistive technology announces, so the word is purely
+   visual. Handheld keeps the bare vertical grip in the left gutter -- there
+   is no room for a word there. */
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	/* Sized by its content rather than the grip's fixed 44px. The open state
+	   still widens it to the drawer's 228px, and the handle's margin-left:auto
+	   keeps it pinned to the right edge while it does. */
+	.theme_switcher {
+		width: auto;
+	}
+
+	/* max-content, not auto: auto would stretch the handle to the drawer's
+	   228px the moment it opens, where max-content keeps it the width of its
+	   label and lets margin-left:auto hold it at the right edge. */
+	.theme_handle,
+	.corner_button {
+		width: max-content;
+		height: 24px;
+		gap: 6px;
+		padding: 0 14px;
+	}
+
+	/* With a word on it the grip lines have nothing left to say. */
+	.theme_handle::before {
+		display: none;
+	}
+
+	.theme_handle::after {
+		content: "themes";
+		font-size: 13px;
+		font-weight: bold;
+		line-height: 1;
+	}
+
+}
+
+/* --- the corner controls (desktop) -------------------------------------------
+   The themes button hangs from the top-right corner, fixed in one container
+   rather than on its own, so anything added beside it later lines up as a
+   flex item whatever width the themes label has in each theme.
+
+   On handheld the container is display:contents, so the theme grip falls
+   back to its own rules and sits in the left gutter. */
+.corner_controls {
+	display: contents;
+}
+
+/* The corner buttons, admin and overboard, are for regular screens. Handhelds
+   keep their Overboard tab in the nav bar, and reach the mod panel at /mod. */
+.corner_controls > .corner_button {
+	display: none;
+}
+
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	.corner_controls {
+		display: flex;
+		align-items: flex-start;
+		gap: 8px;
+		position: fixed;
+		top: 0;
+		right: 40px;
+		z-index: 300;
+	}
+
+	/* The corner buttons, left of themes: the same face, and their words
+	   set the way the themes label is. They are links, so they drop a
+	   link's colour and underline. */
+	.corner_controls > .corner_button {
+		display: flex;
+		font-size: 13px;
+		font-weight: bold;
+		line-height: 1;
+		color: var(--theme-text);
+		text-decoration: none;
+	}
+
+	.corner_controls > .corner_button.current_overboard {
+		color: var(--theme-text-strong);
+	}
+
+	/* The switcher joins the row instead of being fixed on its own. */
+	.corner_controls > .theme_switcher {
+		position: relative;
+		top: auto;
+		right: auto;
+	}
+
+	/* Opening used to widen the switcher to the drawer's 228px, jumping the
+	   button left every time the menu opened, so the switcher keeps its
+	   button's width and the drawer hangs below it, right-aligned to it. */
+	.corner_controls > .theme_switcher[open] {
+		width: auto;
+		max-width: none;
+	}
+
+	.corner_controls .theme_drawer {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		box-sizing: border-box;
+		width: 228px;
+		max-width: calc(100vw - 54px);
+	}
+}
+
+/* --- the posting form (desktop) ----------------------------------------------
+   A 2px border in the theme's accent -- the colour the board's own frame is
+   outlined in -- with a 2px radius.
+
+   And it starts open on a regular screen, where a handheld starts closed. The
+   server cannot tell the two apart, so the page is sent with the form closed
+   and the desktop reverses what that means: closed shows the form, and a
+   click on its heading (which opens it) folds it away. A form the server
+   sends open on purpose -- a refused post handed back with its draft --
+   carries form_kept_open and stays shown either way. Browsers without
+   ::details-content keep the plain behaviour: closed until clicked. */
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	.form {
+		border: 2px solid var(--theme-accent);
+		border-radius: 2px;
+	}
+
+	details.form::details-content {
+		content-visibility: visible;
+	}
+
+	details.form[open]:not(.form_kept_open)::details-content {
+		content-visibility: hidden;
+	}
+
+	/* The heading's arrow follows what is shown, not the open attribute. */
+	details.form > .form_heading {
+		list-style-type: disclosure-open;
+	}
+
+	details.form[open]:not(.form_kept_open) > .form_heading {
+		list-style-type: disclosure-closed;
+	}
+}
+
+/* --- theme switcher: one plain border, in every state ------------------------
+   A 1px solid black border with a 2px radius on the theme switcher, in every
+   theme and both layouts. The same border before and after pressing: open
+   and :active are listed alongside the resting state, so no state swaps it
+   for an inset or square-cornered one. Each state's other cues -- colour,
+   background -- are left as they are.
+
+   Last in the file on purpose. The states it overrides are set earlier at up
+   to two classes of specificity (`.theme_switcher[open] > .theme_handle`),
+   so these match them and win on order; no media query, so it also beats
+   the handheld rules. */
+.theme_switcher > .theme_handle,
+.theme_switcher[open] > .theme_handle,
+.theme_switcher > .theme_handle:active,
+.corner_controls > .corner_button,
+.corner_controls > .corner_button.current_overboard,
+.corner_controls > .corner_button:active {
+	border: 1px solid #000;
+	border-radius: 2px;
+}
+
+/* On the overboard its button is outlined in the theme's accent, as the
+   Overboard tab was when it sat among the board tabs. After the rule above,
+   at the same specificity, so it wins on order. */
+.corner_controls > .corner_button.current_overboard {
+	border-color: var(--theme-accent);
+}

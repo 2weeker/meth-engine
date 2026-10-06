@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Board tabs
+   Boards are the posts with no parent; this strip switches between them and
+   replaces the root post's old "Post" button.
+
+   Each tab behaves like a physical file divider rather than a browser tab:
+   it is a <details>, and closing it with its arrow closes the whole sheaf of
+   posts filed behind it. The tab itself stays put -- a divider doesn't vanish
+   when you close the section.
+
+   The tab is drawn as two clipped layers, because clip-path would cut a real
+   border off the slanted edges: the outer <details> paints the border colour,
+   the inner <summary> sits 2px inside it painting the face.
+   ========================================================================== */
+.board_tabs {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	margin: 1em 1em 0 1em;
+	padding: 0;
+	overflow-x: auto;
+	border-bottom: 2px solid var(--theme-chrome);
+}
+
+.board_tab {
+	flex: 0 0 auto;
+	padding: 2px 2px 0 2px;
+	background-color: rgba(var(--theme-frame-rgb),.55);
+	/* Trapezoid with eased shoulders: the extra points round off what would
+	   otherwise be two sharp corners at the top of the slant. */
+	clip-path: polygon(
+		5px 24%, 7px 10%, 11px 2px, 17px 0,
+		calc(100% - 17px) 0, calc(100% - 11px) 2px, calc(100% - 7px) 10%, calc(100% - 5px) 24%,
+		100% 100%, 0 100%
+	);
+}
+
+/* The active tab carries the same accent as a selected post, so the tab and
+   the sheaf below it read as one piece. */
+.board_tab.selected_board {
+	background-color: var(--theme-accent);
+}
+
+.board_tab_label {
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
+	list-style: none;
+	background-color: var(--theme-tab-face);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,.2), rgba(var(--theme-frame-rgb),.3));
+	clip-path: polygon(
+		5px 24%, 7px 10%, 11px 2px, 17px 0,
+		calc(100% - 17px) 0, calc(100% - 11px) 2px, calc(100% - 7px) 10%, calc(100% - 5px) 24%,
+		100% 100%, 0 100%
+	);
+}
+
+.board_tab.active_board .board_tab_label {
+	background-color: var(--theme-chrome);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,.42), rgba(var(--theme-chrome-rgb),0));
+}
+
+.board_tab_label::-webkit-details-marker,
+.board_tab_label::marker {
+	display: none;
+	content: "";
+}
+
+/* The divider's pull-tab, on the leading edge. It is the only part of the
+   label that toggles; the link beside it navigates. */
+/* Sized and weighted to match the disclosure arrow on a post, which is the
+   browser's own <summary> marker: full strength, not a faded hint. The tab's
+   is drawn as a ::before rather than left to the marker because the label is a
+   flex box (which drops the native one) and because the tab's clip-path would
+   cut a marker sitting hard against the leading edge. */
+.board_tab_label::before {
+	content: "\25BE";
+	flex: 0 0 auto;
+	padding: 4px 6px 4px 16px;
+	font-size: 1.35em;
+	line-height: 1;
+	opacity: 1;
+	cursor: pointer;
+}
+
+.board_tab_label:hover::before {
+	opacity: 1;
+}
+
+/* Closed: the arrow points side-on, the way a collapsed disclosure does. */
+.board_tab:not([open]) .board_tab_label::before {
+	content: "\25B8";
+}
+
+.board_tab_link {
+	flex: 1 1 auto;
+	display: block;
+	padding: 5px 18px 4px 2px;
+	color: var(--theme-text);
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.board_tab_link:hover {
+	text-decoration: none;
+}
+
+.board_tab:hover .board_tab_label {
+	background-image: linear-gradient(to bottom, rgba(255,255,255,.3), rgba(var(--theme-frame-rgb),.24));
+}
+
+.board_tab.active_board .board_tab_link {
+	color: var(--theme-text-strong);
+	padding-top: 7px;
+}
+
+.board_tab.active_board .board_tab_label::before {
+	padding-top: 6px;
+}
+
+/* Closing the active divider closes the sheaf filed behind it. The tab strip
+   precedes the root post in the markup, so :has() + ~ reaches it. */
+.board_tabs:has(.board_tab.active_board:not([open])) ~ .post.root_post {
+	display: none;
+}
+
+/* Keep a header-shaped end cap under a collapsed board's divider. */
+.collapsed_board_header {
+	display: none;
+	padding: 8px 12px;
+	text-align: center;
+	margin: 0 1em;
+	border: 2px solid var(--theme-accent);
+	border-top: none;
+}
+
+.board_tabs:has(.board_tab.active_board:not([open])) ~ .collapsed_board_header {
+	display: block;
+}
+
+/* Desktop restores this disclosure; mobile navigation stays by the composer. */
+.root_post > .post_header {
+	display: none;
+}
+
+/* Backlinks are emitted for every post but belong to the handheld layout,
+   which lays threads out flat; the desktop board shows the same
+   relationships through nesting, so they stay hidden here.
+
+   The title/board heading and the sign-off are the same arrangement: emitted
+   for every post, drawn only on handheld, where the header row has no room for
+   them. The desktop header shows both, so these copies stay hidden. */
+.backlinks,
+.backlink_parent,
+.post_content_heading,
+.post_signature {
+	display: none;
+}

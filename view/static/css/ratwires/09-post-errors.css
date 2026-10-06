@@ -1,0 +1,25 @@
+/* --- why a post was refused -----------------------------------------------
+   Sits inside the composer, under the message box and directly above the
+   captcha, because most refusals require solving a fresh captcha and that is
+   where the eye has to go next.
+
+   #ff2b2b is the sage red, reused rather than reinvented: it is the one
+   colour in this palette that already means "pay attention". It is plain
+   text on the composer's own background: no fill, no border. */
+.post_error {
+	margin: 0;
+	padding: 5px 8px;
+	color: #ff2b2b;
+	font-weight: bold;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	/* The composer is a flex row on handheld -- textarea and post button on
+	   one line, captcha stacked beneath. The notice takes a full row of its
+	   own between them, which is why .captcha_form's order moves to 4. */
+	.post_error {
+		order: 3;
+		flex: 1 1 100%;
+	}
+}
+

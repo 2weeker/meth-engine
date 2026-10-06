@@ -1,0 +1,64 @@
+package view
+
+import "strconv"
+
+templ ComposerForm(p Page) {
+	if p.History != "" {
+		<div class="form overboard_prompt history_prompt">Posts by ID:{ p.History }</div>
+	} else {
+		<details class={ "form", templ.KV("form_kept_open", p.Composer.Open) } open?={ p.Composer.Open }>
+			<summary class="form_heading">
+				if p.ReplyTo != "" {
+					Replying to post { p.ReplyTo }{ " " }<br/>
+				} else {
+					New thread{ " " }<br/>
+				}
+			</summary>
+			<div class="form_contents">
+				<form action={ "/post/create" + replyPath(p.ReplyTo) } method="post">
+					<input type="hidden" name="_csrf" value={ p.CSRF }/>
+					<input type="hidden" name="parent" id="parent" value={ p.ReplyTo }/>
+					<div class="form_trap" aria-hidden="true">
+						<label>Leave this field empty{ " " }<input type="text" name={ HoneypotField } value="" tabindex="-1" autocomplete="off"/></label>
+					</div>
+					<br/>
+					if p.ReplyTo != "" {
+						<label class="sage_option"><input type="checkbox" name="sage" value="true" checked?={ p.Composer.Sage }/>{ " " }Sage</label>
+						<br/>
+					}
+					if p.TagsHint != "" {
+						<input type="text" name="tags" id="tags" class="tags_input" aria-label="Tags" placeholder={ p.TagsHint } value={ p.Composer.Tags } autocomplete="off" autocapitalize="off" spellcheck="false"/>
+					}
+					<textarea
+						name="msg"
+						id="msg"
+						aria-label="Message"
+						autofocus="true"
+						if p.MaxChars > 0 {
+							maxlength={ strconv.Itoa(p.MaxChars) }
+						}
+						if p.Placeholder != "" {
+							placeholder={ p.Placeholder }
+						}
+					>{ p.Composer.Message }</textarea>
+					<br/>
+					if p.Composer.Error != "" {
+						<p class="post_error" role="alert">{ p.Composer.Error }</p>
+						<br/>
+					}
+					if p.Captcha != nil {
+						@CaptchaForm(p.Captcha)
+					}
+					<input type="submit" value="post" id="post"/>
+				</form>
+			</div>
+		</details>
+	}
+}
+
+func replyPath(replyTo string) string {
+	if replyTo == "" {
+		return ""
+	}
+	return "/" + replyTo
+}

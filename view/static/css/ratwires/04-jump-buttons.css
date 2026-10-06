@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Jump buttons
+   --------------------------------------------------------------------------
+   Two links to anchors at either end of the board. The anchors sit inside the
+   root post, which is the scroll container on handheld -- a fragment outside
+   it could not be scrolled to. Plain links; the browser scrolls, no JS.
+
+   Two homes for the same pair: the screen corners on desktop (.board_jump),
+   and the mobile bar on handheld (.mobile_board_jump). The look below is
+   shared; only the positioning differs, so neither copy inherits the other's.
+   Styled as ordinary buttons, matching input[type=submit]: 2px outset over a
+   translucent face, 4px radius, solid on hover.
+   ========================================================================== */
+.board_anchor {
+	display: block;
+	height: 0;
+	overflow: hidden;
+}
+
+/* Dressed as tab furniture, matching .board_tab_label: the frame colour for
+   the border and the tab face under the same top-light gradient, so the jump
+   controls read as part of the same set on both layouts. */
+.board_jump_button {
+	display: block;
+	width: 30px;
+	padding: 4px 0;
+	text-align: center;
+	color: var(--theme-text-strong);
+	font-weight: bold;
+	text-decoration: none;
+	border: 1px solid var(--theme-frame);
+	border-radius: 3px;
+	background-color: var(--theme-tab-face);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,.2), rgba(var(--theme-frame-rgb),.3));
+	box-shadow:
+		inset 1px 1px 0 rgba(255,255,255,.16),
+		inset -1px -1px 0 rgba(var(--theme-frame-rgb),.4);
+}
+
+.jump_up::before {
+	content: "\25B4";
+	font-size: 15px;
+	line-height: 1;
+}
+
+.jump_down::before {
+	content: "\25BE";
+	font-size: 15px;
+	line-height: 1;
+}
+
+.board_jump_button:hover {
+	background-color: var(--theme-tab-face);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,.3), rgba(var(--theme-frame-rgb),.24));
+	color: var(--theme-text-strong);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.board_jump_button:active {
+	background-image: linear-gradient(to bottom, rgba(var(--theme-frame-rgb),.34), rgba(255,255,255,.18));
+	box-shadow:
+		inset 1px 1px 0 rgba(var(--theme-frame-rgb),.45),
+		inset -1px -1px 0 rgba(255,255,255,.2);
+}
+
+/* Desktop: opposite corners of the left edge. display:contents so the nav
+   imposes no box -- and no transform, which would become the containing block
+   for its fixed children and break the corner anchoring. */
+.board_jump {
+	display: contents;
+}
+
+.board_jump .board_jump_button {
+	position: fixed;
+	left: 8px;
+	z-index: 40;
+}
+
+.board_jump .jump_up {
+	top: 8px;
+}
+
+.board_jump .jump_down {
+	bottom: 8px;
+}
+
+/* The mobile bar is display:none on desktop, so this copy is handheld-only. */
+.mobile_board_jump {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+/* The jump pair sits at the RIGHT end of the mobile bar. It was centred by an
+   auto margin either side, which was right while Archives and Pinned sat to
+   its right; with those gone it is the last thing on the bar, so only the
+   left margin stays auto and it goes to the end. */
+.mobile_navigation .mobile_board_jump { margin-left: auto; margin-right: 0; }
+

@@ -1,0 +1,78 @@
+services:
+  meth:
+    build: .
+    restart: unless-stopped
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD", "/meth", "-healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+    ports:
+      - "127.0.0.1:${METH_PORT:-3000}:3000"
+    environment:
+      METH_ENV: ${METH_ENV:-production}
+      DATABASE_URL: postgres://meth:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/meth
+      METH_SECRET: ${METH_SECRET:?set METH_SECRET in .env}
+      METH_POSTER_ID_SECRET: ${METH_POSTER_ID_SECRET:-}
+      METH_MOD_USERNAME: ${METH_MOD_USERNAME:-}
+      METH_MOD_PASSWORD: ${METH_MOD_PASSWORD:-}
+      METH_TRUSTED_PROXY: ${METH_TRUSTED_PROXY:-1}
+      METH_LOG_LEVEL: ${METH_LOG_LEVEL:-info}
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    volumes:
+      - ./config.yaml:/config.yaml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    environment:
+      POSTGRES_USER: meth
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: meth
+    ports:
+      - "127.0.0.1:${METH_DB_PORT:-5434}:5432"
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meth -d meth"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  caddy:
+    image: caddy:2
+    profiles: [proxy]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      METH_DOMAIN: ${METH_DOMAIN:-localhost}
+      METH_UPSTREAM: meth:3000
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      meth:
+        condition: service_healthy
+
+volumes:
+  db:
+  caddy_data:
+  caddy_config:

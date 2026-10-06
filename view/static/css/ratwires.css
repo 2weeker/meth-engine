@@ -1,0 +1,21 @@
+/* ratwires.css -- the shared layout and the ratwires palette. Every theme imports
+   this file and then overrides the palette.
+
+   The rules live in static/css/ratwires/, split along the file's own sections
+   and imported here in their original order. Order matters: later rules win
+   ties in the cascade, and several depend on it, so a rule moves between
+   files only if its position in the combined sheet stays the same. At
+   startup the server replaces these @imports with the files' contents, so a
+   browser still downloads one stylesheet per theme. */
+@import "./ratwires/01-base.css";
+@import "./ratwires/02-board-tabs.css";
+@import "./ratwires/03-scrollbars.css";
+@import "./ratwires/04-jump-buttons.css";
+@import "./ratwires/05-handheld.css";
+@import "./ratwires/06-board-sheets.css";
+@import "./ratwires/07-theme-switcher.css";
+@import "./ratwires/08-mod.css";
+@import "./ratwires/09-post-errors.css";
+@import "./ratwires/10-desktop-controls.css";
+@import "./ratwires/11-tags.css";
+@import "./ratwires/12-webring.css";

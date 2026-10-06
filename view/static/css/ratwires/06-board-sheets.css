@@ -1,0 +1,168 @@
+/* A divider and its sheet share an outline. Paint the joining edge behind
+   the tabs so the active tab's opaque face leaves an opening in that edge. */
+body {
+	--divider-outline: var(--theme-chrome);
+}
+
+body:has(.board_tab.selected_board) {
+	--divider-outline: var(--theme-accent);
+}
+
+.board_tabs {
+	border-bottom: none;
+	background-image: linear-gradient(var(--divider-outline), var(--divider-outline));
+	background-size: 100% 2px;
+	background-position: bottom;
+	background-repeat: no-repeat;
+}
+
+.board_tab.active_board .board_tab_label {
+	background-image: linear-gradient(to bottom, var(--theme-tab-light), var(--theme-chrome));
+}
+
+/* Cover the joining line only inside the active tab, keeping its side edges. */
+.board_tab.active_board {
+	position: relative;
+	border-bottom: none;
+}
+
+.board_tab.active_board::after {
+	content: "";
+	position: absolute;
+	left: 2px;
+	right: 2px;
+	bottom: 0;
+	height: 2px;
+	background-color: var(--theme-chrome);
+	pointer-events: none;
+}
+
+
+.board_container > .root_post {
+	margin: 0 1em .5em;
+	border: 2px solid var(--divider-outline);
+	border-top: none;
+	border-radius: 0;
+}
+
+.board_container > .collapsed_board_header {
+	border-color: var(--divider-outline);
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.board_container > .post.root_post {
+		margin: 0;
+		border: none;
+	}
+
+	.board_tabs {
+		margin: auto 7px 0;
+		padding: 5px 0 0;
+		box-shadow: none;
+		background-color: transparent;
+	}
+
+	/* The composer is the sheet below the tabs; no seam crosses its face. */
+	.posting_deck > .form {
+		width: calc(100% - 14px);
+		margin: 0 7px 7px;
+		border: 2px solid var(--divider-outline);
+		border-top: none;
+		box-shadow: none;
+	}
+
+	.board_container > .collapsed_board_header {
+		border: 2px solid var(--divider-outline);
+		border-top: none;
+		border-bottom: none;
+		background-color: var(--theme-chrome);
+	}
+}
+
+/* Mobile board navigation belongs to the composer, not the post scroller. */
+.posting_deck {
+	display: contents;
+}
+
+.mobile_board_tabs {
+	display: none;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.posting_deck {
+		display: block;
+		order: 3;
+		flex: 0 0 auto;
+		max-height: 62%;
+		overflow-y: auto;
+	}
+
+	.desktop_board_tabs,
+	.board_container > .collapsed_board_header {
+		display: none;
+	}
+
+	.board_container > .board_tabs:has(.board_tab.active_board:not([open])) ~ .collapsed_board_header {
+		display: none;
+	}
+
+	/* A desktop disclosure cannot hide posts after resizing to mobile. */
+	.board_container > .board_tabs:has(.board_tab.active_board:not([open])) ~ .post.root_post,
+	.board_container > .post.root_post {
+		display: block;
+	}
+
+	.posting_deck > .mobile_board_tabs {
+		display: flex;
+		margin: 0 7px;
+		padding-top: 0;
+	}
+
+	.mobile_board_tabs .board_tab_label::before {
+		display: none;
+	}
+
+	.mobile_board_tabs .board_tab_link {
+		padding: 6px 18px 4px;
+	}
+
+	/* No tabs sit above the form any more, so it draws its own top edge. */
+	.posting_deck > .form {
+		max-height: none;
+		overflow: visible;
+		padding-top: 5px;
+		margin-top: 7px;
+		border-top: 2px solid var(--divider-outline);
+	}
+}
+
+.thread_board {
+	margin-left: .5em;
+	padding: 2px 6px;
+	background-color: rgba(var(--theme-chrome-rgb),.5);
+}
+.overboard_empty { margin: 0; padding: 12px; }
+.overboard_prompt { text-align: center; }
+
+/* A poster ID's history page lays its posts out flat, so nesting cannot
+   show what a reply answers there: its >>parent link, hidden on the desktop
+   board, is shown, as the handheld board shows it. */
+.history .backlink_parent {
+	display: inline;
+}
+
+/* Leave breathing room between the divider tabs and the first thread. */
+.board_container > .post.root_post.overboard {
+	padding-top: 12px;
+}
+
+/* Archives, Spam and Pinned form one group at the right-hand end. Only the
+   first of them takes the auto margin -- giving it to each would spread them
+   apart. The class is set server-side because :first-of-type matches by
+   element type, not by class, so it never matched these. */
+.pinned_board_tab,
+.system_board_tab { margin-left: 0; }
+
+.right_group_start { margin-left: auto; }
+
+.mobile_navigation { display: none; }

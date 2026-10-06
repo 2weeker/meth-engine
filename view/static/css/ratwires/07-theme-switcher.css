@@ -1,0 +1,521 @@
+/* ==========================================================================
+   Theme switcher
+   --------------------------------------------------------------------------
+   A grip hanging from the top edge, offset left of the scroll bar, opening a
+   drawer beneath it. Shared by both layouts -- handheld overrides it back to
+   a vertical grip in the left gutter further down. A <details>, so no JS.
+   ========================================================================== */
+/* right is measured past the scroll bar so the grip never sits over it. It
+   may overlap the banner; that is intended. */
+.theme_switcher {
+	display: block;
+	position: fixed;
+	top: 0;
+	right: 40px;
+	width: 44px;
+	z-index: 300;
+	color: var(--theme-text);
+}
+
+/* Anchored by its right edge, so opening grows the drawer leftwards while the
+   grip stays put. */
+.theme_switcher[open] {
+	width: 228px;
+	max-width: calc(100vw - 54px);
+}
+
+/* The corner buttons beside themes on a regular screen -- admin and
+   overboard -- wear the themes button's face: they share these rules, and
+   the ones in 10-desktop-controls.css. */
+.theme_handle,
+.corner_button {
+	/* margin-left:auto keeps the grip against the right edge of the box, so it
+	   does not shift when the drawer widens it. */
+	float: none;
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 44px;
+	height: 16px;
+	padding: 0;
+	list-style: none;
+	cursor: pointer;
+	border: 2px outset var(--theme-bevel-light);
+	border-top: none;
+	border-radius: 0 0 7px 7px;
+	background-color: var(--theme-chrome);
+	background-image: linear-gradient(to bottom, var(--theme-tab-light), var(--theme-chrome), var(--theme-tab-face));
+	box-shadow: 2px 2px 0 rgba(0,0,0,.45);
+}
+
+.theme_handle::-webkit-details-marker,
+.theme_handle::marker { display: none; content: ""; }
+
+.theme_handle::before {
+	content: "";
+	width: 16px;
+	height: 3px;
+	border-top: 1px solid var(--theme-bevel-dark);
+	border-bottom: 1px solid var(--theme-bevel-light);
+}
+
+.theme_switcher[open] > .theme_handle,
+.corner_button.current_overboard {
+	border-style: inset;
+	border-radius: 0;
+	color: var(--theme-text-strong);
+}
+
+.theme_drawer {
+	margin: 0;
+	padding: 7px;
+	border: 3px ridge var(--theme-bevel-light);
+	background-color: var(--theme-chrome);
+	box-shadow: 3px 4px 0 rgba(0,0,0,.55), inset 0 0 0 1px var(--theme-frame);
+	animation: theme-drawer-open 140ms ease-out;
+}
+
+/* The drawer's "Appearance" heading is not shown in either layout: it only
+   repeated the button that opened it. The markup still renders it; hiding it
+   here keeps it out of the accessibility tree too. */
+.theme_drawer_title {
+	display: none;
+}
+
+.theme_choice {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	box-sizing: border-box;
+	padding: 7px;
+	border: 2px outset var(--theme-bevel-light);
+	background-color: var(--theme-tab-face);
+	font-size: 15px;
+	text-decoration: none;
+}
+
+.theme_choice + .theme_choice { margin-top: 6px; }
+.theme_choice::before {
+	content: "";
+	width: 12px;
+	height: 12px;
+	border: 1px inset var(--theme-bevel-light);
+	background-color: #be00ff;
+}
+
+/* Each swatch is its own theme's post-root outline -- the colour its board
+   is framed in -- so the menu previews the one colour that most identifies
+   each theme. The drawer lists every theme at once, and another theme's
+   custom properties are not in scope here, so the values are written out:
+   when a theme's selected-post border or accent changes, change its swatch
+   with it. ratwires' is the rule above. */
+.theme_choice_cyb::before { background-color: #68ff00; }
+.theme_choice_angelic::before { background-color: #e0a915; }
+.theme_choice_macos::before { background-color: #4c5fa8; }
+.theme_choice_meth::before { background-color: #00ebff; }
+.theme_choice_blame::before { background-color: #7d959c; }
+.theme_choice_coffee::before { background-color: #d99a5b; }
+.theme_choice.current_theme { border-style: inset; border-color: var(--theme-accent); }
+.theme_choice.current_theme::after { content: "active"; margin-left: auto; font-size: 11px; }
+.theme_choice:active { border-style: inset; }
+.theme_choice:hover { background-color: var(--theme-chrome); }
+.theme_choice:focus-visible,
+.theme_handle:focus-visible,
+.corner_button:focus-visible { outline: 2px solid var(--theme-accent); outline-offset: 2px; }
+
+/* Handheld keeps the left-gutter grip: top-right would sit on the Pinned tab
+   in the mobile bar. Declared after the block above so it wins the cascade --
+   same specificity, so source order decides. */
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	/* The grip is centred on the screen, not at 45% as it was: the drawer is
+	   centred on the grip (below), and only a grip at the exact middle leaves
+	   the same room above the drawer as below it, so a drawer capped at the
+	   screen height always fits. */
+	.theme_switcher {
+		top: calc(50% - 32px);
+		right: auto;
+		left: 7px;
+		width: 24px;
+	}
+
+	/* The drawer hangs outside the switcher now, so opening must not widen it. */
+	.theme_switcher[open] {
+		width: 24px;
+		max-width: none;
+	}
+
+	/* Back to a vertical grip: the shared rules above are now horizontal, so
+	   the dimensions, the grip lines and the open edge all have to be undone.
+	   24x64px -- a thumb-sized target, up from 16x44. */
+	.theme_handle {
+		float: left;
+		margin-left: 0;
+		width: 24px;
+		height: 64px;
+		border: 2px outset var(--theme-bevel-light);
+		border-left: none;
+		border-radius: 0 7px 7px 0;
+		/* A light wash of the theme's chrome -- half strength, flat -- so the
+		   grip has some colour while the post behind still shows through. No
+		   drop shadow: under a see-through button it would be a stray dark
+		   strip along two edges. */
+		background: rgba(var(--theme-chrome-rgb), .5);
+		box-shadow: none;
+	}
+
+	.theme_handle::before {
+		width: 5px;
+		height: 24px;
+		border-top: none;
+		border-bottom: none;
+		border-left: 1px solid var(--theme-bevel-dark);
+		border-right: 1px solid var(--theme-bevel-light);
+	}
+
+	/* The drawer hangs beside the grip, vertically centred on it, so the grip
+	   sits halfway down the list it opens. It used to start level with the
+	   grip's top and hang down, which ran it off the bottom of any small or
+	   landscape screen.
+
+	   Centred with `translate`, not `transform`: the open animation
+	   (theme-drawer-open) animates transform, and would override a transform
+	   here for its first 140ms and make the drawer jump. The two properties
+	   compose independently.
+
+	   Capped at the screen height less a margin; a screen too short for every
+	   theme scrolls the list rather than clipping it. dvh follows the visible
+	   height as a mobile address bar shows and hides; vh is the fallback. */
+	.theme_drawer {
+		position: absolute;
+		left: 24px;
+		top: 50%;
+		translate: 0 -50%;
+		box-sizing: border-box;
+		width: 228px;
+		max-width: calc(100vw - 45px);
+		max-height: calc(100vh - 16px);
+		max-height: calc(100dvh - 16px);
+		overflow-y: auto;
+		margin: 0;
+		box-shadow: 4px 4px 0 rgba(0,0,0,.55), inset 0 0 0 1px var(--theme-frame);
+	}
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	/* A separate flex row keeps global navigation at the top without
+	   covering posts or moving with the bottom composer. */
+	.mobile_navigation {
+		display: flex;
+		order: 1;
+		flex: 0 0 auto;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 8px;
+		padding: 0;
+		margin: 0;
+		/* Classic Mac titlebar grooves, tinted to match the board chrome. */
+		background-color: var(--theme-chrome);
+		background-image: repeating-linear-gradient(
+			to bottom,
+			var(--theme-chrome) 0, var(--theme-chrome) 2px,
+			var(--theme-bevel-dark) 2px, var(--theme-bevel-dark) 3px,
+			var(--theme-bevel-light) 3px, var(--theme-bevel-light) 4px
+		);
+		box-shadow: inset 0 1px 0 var(--theme-bevel-light), inset 0 -1px 0 var(--theme-bevel-dark);
+	}
+
+	.mobile_navigation .board_tab {
+		padding: 0 2px 2px;
+	}
+
+	/* Inverted shoulders make these tabs hang from the upper bezel. */
+	.mobile_navigation .board_tab,
+	.mobile_navigation .board_tab_label {
+		clip-path: polygon(
+			0 0, 100% 0,
+			calc(100% - 4px) 76%, calc(100% - 6px) 90%, calc(100% - 9px) calc(100% - 2px), calc(100% - 13px) 100%,
+			13px 100%, 9px calc(100% - 2px), 6px 90%, 4px 76%
+		);
+	}
+
+	.mobile_navigation .board_tab_label::before,
+	.mobile_navigation .board_tab.active_board::after {
+		display: none;
+	}
+
+	.mobile_navigation .board_tab_link {
+		padding: 5px 18px 7px;
+		font-size: .82em;
+	}
+
+	.mobile_navigation .active_board .board_tab_label {
+		background-image: linear-gradient(to bottom, var(--theme-chrome), var(--theme-tab-light));
+	}
+	.mobile_board_tabs { scrollbar-width: none; }
+	.mobile_board_tabs::-webkit-scrollbar { display: none; }
+}
+
+/* These collection tabs use square, raised chrome instead of file shoulders. */
+.board_tab.utility_board_tab,
+.board_tab.utility_board_tab > .board_tab_label {
+	clip-path: none;
+	border-radius: 0;
+}
+
+.board_tab.utility_board_tab {
+	margin-right: 3px;
+	box-shadow: 3px 0 0 var(--theme-frame);
+}
+
+.board_tab.utility_board_tab > .board_tab_label {
+	background-image: none;
+	box-shadow: inset 1px 1px 0 var(--theme-bevel-light), inset -1px 0 0 var(--theme-bevel-dark);
+}
+
+.utility_board_tab > .board_tab_label::before {
+	display: none;
+}
+
+.utility_board_tab .board_tab_link {
+	padding-left: 18px;
+	padding-right: 18px;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.mobile_navigation .utility_board_tab {
+		/* Expose the outline above the face as well as on its other edges. */
+		padding-top: 2px;
+		margin-bottom: 3px;
+		box-shadow: 3px 3px 0 var(--theme-frame);
+	}
+
+	.mobile_navigation .utility_board_tab > .board_tab_label {
+		box-shadow: inset 1px 1px 0 var(--theme-bevel-light), inset -1px -1px 0 var(--theme-bevel-dark);
+	}
+
+	.mobile_navigation .utility_board_tab .board_tab_link {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+}
+
+/* THE HEADER IS ONE ROW, and these orders are what put it in the board's
+   order rather than the DOM's: the disclosure control, then Reply, then who
+   said it, then the numbers and the title. Every item in this row needs an
+   `order`, including the pseudo-element — see below. */
+.post_header > a[id^="reply-"] { order: -3; flex: 0 0 auto; }
+/* Between Reply and the number, which is the first thing in .post_meta. */
+.post_poster_id { order: -2; flex: 0 0 auto; }
+.post_author, .post_tripcode, .post_sage { order: -1; flex: 0 0 auto; }
+
+/* THE TITLE TAKES THE SQUEEZE, and nothing else does.
+   Flexbox shrinks every item that will allow it, so a long title first
+   compressed its neighbours: measured at 1280px, a 120-character title broke
+   `testr` into "test/r" and `Anon` into "An/on" down the left of the row. The
+   short, fixed things refuse to shrink (above) and this one absorbs all of it. */
+.post_meta {
+	order: 0;
+	flex: 1 1 auto;
+	/* Lets the item shrink below its content so a long title WRAPS inside it
+	   instead of pushing the row wider. A flex item's min-width is `auto` by
+	   default, which refuses to go under the longest unbreakable run. */
+	min-width: 0;
+}
+
+/* A name is 209 characters at most and is usually a word or two; past this it
+   wraps inside its own item rather than widening the row for everyone. The cap
+   is what keeps `flex-shrink: 0` above safe against an absurd one. */
+.post_author { max-width: 24ch; }
+.post_tripcode { max-width: 14ch; }
+
+/* The thread title, on the SAME LINE as the rest of the header.
+
+   It sits inside .post_meta, after the number and the timestamp, and is
+   therefore inline: it was `display: block` here, which inside an inline span
+   builds a block box and puts the title on a line of its own. Nothing clamps
+   it either — it was `nowrap` with an ellipsis at 30em, so a long title was cut
+   off rather than shown. A title is the one thing in the header a reader
+   chose, and it wraps like any other text. */
+.thread_title_link {
+	margin-left: .45em;
+	color: var(--theme-text-strong);
+	font-weight: bold;
+	/* `anywhere` and not `break-word`: a title can be one unbroken 200-character
+	   run, and that is exactly the case that otherwise overflows the post. */
+	overflow-wrap: anywhere;
+}
+
+/* The post's disclosure control, drawn for the native <details> whose marker
+   this skin hides.
+
+   ORDER -3 PUTS IT FIRST, and it is not optional: a pseudo-element's order is
+   0 like any other flex item, so without this it lands beside .post_meta in
+   the middle of the row — left of the numbers but right of Reply and the
+   author, which is not where a collapse control belongs. It is the leftmost
+   thing in the header, as it was. */
+.post_header::before {
+	content: "\25BE";
+	order: -4;
+	flex: 0 0 auto;
+	padding: 0 2px;
+	border: none;
+	background: none;
+	color: var(--theme-text);
+	font-size: 1em;
+	line-height: 1;
+	opacity: .8;
+}
+.post:not([open]) > .post_header::before { content: "\25B8"; }
+.post_header::before { display: none; }
+.post_author { font-weight: bold; overflow-wrap: anywhere; }
+.post_tripcode { color: var(--theme-accent); font-family: monospace; overflow-wrap: anywhere; }
+
+/* The poster ID. Monospace and dimmer than a name: it is a code that tells two
+   posters apart, not something anybody chose to be called. */
+.post_poster_id {
+	font-family: monospace;
+	/* Larger than the text around it, deliberately: on a board where nobody
+	   gives a name this is the only thing telling two posters apart. */
+	font-size: 1.2em;
+	color: var(--theme-text);
+	opacity: .85;
+	white-space: nowrap;
+}
+
+/* As a link to its history page it keeps that look: not the bold of a
+   link, nor the pink, overlined style of a link in a message -- which the
+   handheld copy, inside the message box, would otherwise take. Underlined
+   on hover, to say it can be followed. */
+a.post_poster_id,
+.post_content a.post_poster_id {
+	color: var(--theme-text);
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: none;
+	text-shadow: none;
+}
+
+a.post_poster_id:hover,
+.post_content a.post_poster_id:hover {
+	color: var(--theme-text);
+	text-decoration: underline;
+}
+
+/* A touch smaller under the message on handheld, where it is not competing
+   with a header row for attention and the screen is narrow. */
+.post_signature .post_poster_id {
+	font-size: 1.05em;
+}
+/* The message box's copy is for handheld only; the desktop header has room. */
+.post_sage_mark { display: none; }
+
+/* sage is a word in red, and on the desktop board that is all it is: it sits
+   in the header among the other things said about the post, and a bevelled
+   chip in that row would be the only raised object in a line of plain text.
+   The handheld copy is a raised chip, because there it sits in the message
+   box's bottom line rather than in a row of text -- see the handheld rules.
+
+   It cycled through the rainbow (the formatter's .rainbowtext animation) until
+   2026-09-21; a flag on a post reads better as a fixed mark than as motion,
+   and this is the only red on the board. */
+.post_sage {
+	color: #ff2b2b;
+	font-weight: bold;
+}
+.sage_option { display: inline-flex; align-items: center; gap: 5px; padding: 4px 0; }
+.sage_option input { accent-color: var(--theme-accent); }
+.form .post_name_input,
+.form .thread_title_input {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	padding: 4px;
+	border: 2px inset var(--theme-bevel-light);
+	font-family: var(--theme-field-font);
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.form .post_name_input, .form .thread_title_input { font-size: 16px; }
+	.sage_option { flex-basis: 100%; }
+	/* Extra fields scroll inside the composer, keeping tabs and its toggle visible. */
+	.posting_deck > .form > .form_contents {
+		max-height: calc(62vh - 110px);
+		overflow-y: auto;
+	}
+}
+
+.banner_board_tabs {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 10px;
+	padding-bottom: 3px;
+}
+
+.banner_board_tabs .right_group_start { margin-left: 0; }
+.banner_board_tabs .utility_board_tab {
+	padding: 2px;
+	box-shadow: 3px 3px 0 var(--theme-frame);
+}
+.banner_board_tabs .utility_board_tab > .board_tab_label {
+	box-shadow: inset 1px 1px 0 var(--theme-bevel-light), inset -1px -1px 0 var(--theme-bevel-dark);
+}
+.banner_board_tabs .active_board::after { display: none; }
+
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	.board_container > .root_post {
+		margin: 0 .5em .5em;
+		border: 2px solid var(--theme-post-border);
+		border-radius: 4px;
+	}
+	.board_container > .root_post.selected_post {
+		border-color: var(--theme-selected-post-border, var(--theme-accent));
+	}
+	.root_post > .post_header {
+		display: list-item;
+	}
+	.board_container > details.root_post:not([open]) ~ .collapsed_board_header {
+		display: block;
+		border: 2px solid var(--theme-post-border);
+		border-radius: 4px;
+	}
+}
+
+@keyframes theme-drawer-open {
+	from { transform: translateX(-6px); }
+	to { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.theme_drawer { animation: none; }
+	/* A colour cycling once a second is exactly what this asks to be spared. */
+	.rainbowtext { animation: none; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+	.theme_switcher { left: 4px; }
+}
+
+/* Mobile sage sits beneath the poster ID, IN the message box's bottom line.
+   The positioning and the broken line itself are in the handheld block further
+   up, beside the rest of the message box's rules; this only stacks the sign-off
+   so the ID sits above where the mark is drawn.
+
+   There were two implementations of this at once for a while: this block also
+   carried `background-image: none` on .post_content_saged and
+   `position: static; transform: none` on the mark, which between them undid
+   the broken line and dropped the word back inside the box. One of them had to
+   go and the geometry is better kept with the box it belongs to. */
+@media (max-width:768px),(orientation:landscape) and (max-height:600px) {
+  .post_signature {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+}
+

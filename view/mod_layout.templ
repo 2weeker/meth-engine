@@ -1,0 +1,22 @@
+package view
+
+templ ModLayout(p ModPage) {
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<link rel="stylesheet" type="text/css" href="/css/coffee.css"/>
+			<link rel="icon" type="image/gif" href="/favicon.gif"/>
+			<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"/>
+			<link rel="icon" type="image/png" href="/favicon.png" sizes="32x32"/>
+			<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+			<title>{ p.Site.Title }</title>
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+			<meta name="robots" content="noindex, nofollow"/>
+		</head>
+		<body>
+			<div class="mod_screen">
+				@ModBody(p)
+			</div>
+		</body>
+	</html>
+}

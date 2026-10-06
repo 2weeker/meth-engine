@@ -1,0 +1,432 @@
+/* Inter, the site's typeface (static/fonts/Inter; SIL Open Font License,
+   OFL.txt beside it). Served as two variable web fonts, upright and italic,
+   each holding every weight from 100 to 900, cut down to Latin and common
+   punctuation. A character outside that comes from the fallback,
+   sans-serif, as does everything while the font loads (font-display: swap)
+   or if it never does. Themes that name their own font keep it. */
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url(/fonts/inter.woff2) format("woff2");
+}
+
+@font-face {
+	font-family: "Inter";
+	font-style: italic;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url(/fonts/inter-italic.woff2) format("woff2");
+}
+
+/* Shared layout and ratwires palette; Cyb imports this and replaces the palette. */
+:root {
+	--theme-text-strong: #ffcaf2;
+	--theme-text: #f6b3e5;
+	--theme-field: #ffcaf2;
+	--theme-ground: #c876ff;
+	--theme-accent: #be00ff;
+	--theme-chrome: #8c53b3;
+	--theme-bevel-light: #a96fd0;
+	--theme-bevel-dark: #4a2563;
+	--theme-frame: #1e0042;
+	--theme-tab-face: #6b3a8d;
+	--theme-tab-light: #bc94d4;
+	--theme-text-rgb: 246,179,229;
+	--theme-accent-rgb: 190,0,255;
+	--theme-chrome-rgb: 140,83,179;
+	--theme-frame-rgb: 30,0,66;
+	--theme-background-image: url(/images/bg.png);
+	--theme-font: "Inter", sans-serif;
+	--theme-banner-background-color: rgba(0,0,0,.4);
+	--theme-banner-border-color: rgba(0,0,0,.4);
+	--theme-input-text: #000;
+	--theme-post-background: rgba(0,0,0,.2);
+	--theme-post-border: rgba(0,0,0,.2);
+	--theme-greentext: lime;
+	/* Promoted from a hardcoded `aqua` when the angelic theme arrived: aqua on
+	   a near-white ground is unreadable. */
+	--theme-bluetext: aqua;
+	/* The dubs/trips shine. A translucent cyan under a white sweep: both need
+	   a dark ground to read, so a pale theme overrides it. */
+	--theme-digit-check: rgba(0, 255, 255, 0.5);
+	--theme-link: deeppink;
+	--theme-link-hover: lightpink;
+	--theme-mobile-font: Charcoal, Geneva, Chicago, "Lucida Grande", Tahoma, Verdana, sans-serif;
+	--theme-field-font: Geneva, Charcoal, "Lucida Grande", Tahoma, Verdana, sans-serif;
+	--theme-heading-text: #8c53b3;
+}
+
+body {
+	color: var(--theme-text);
+	background-color: var(--theme-ground);
+	background-image: var(--theme-background-image);
+	font-family: var(--theme-font);
+}
+
+a {
+	color: var(--theme-text);
+	font-weight: bold;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.digit_check {
+	font-weight: 900;
+	font-size: 1.2em;
+}
+
+.digit_check {
+	background: #222 -webkit-gradient(linear, left top, right top, from(#222), to(#222), color-stop(0.5, #fff)) 0 0 no-repeat;
+	background-image: -webkit-linear-gradient(-40deg, transparent 0%, transparent 40%, #fff 50%, transparent 60%, transparent 100%);
+	-webkit-background-size: 200px;
+	color: var(--theme-digit-check);
+	-webkit-background-clip: text;
+	-webkit-animation-name: shine;
+	-webkit-animation-duration: 3s;
+	-webkit-animation-iteration-count: infinite;
+	text-shadow: 0 0px 0px rgba(255, 255, 255, 0.5);
+}
+
+@-webkit-keyframes shine {
+	0% {
+		background-position: -1000px;
+	}
+	1% {
+		background-position: top right;
+	}
+	99% {
+		background-position: top left;
+	}
+	100% {
+		background-position: 1000px;
+	}
+}
+
+.banner {
+	text-align: center;
+	background-color:var(--theme-banner-background-color);
+	border-color: var(--theme-banner-border-color);
+	border-width: 2px;
+	border-style: solid;
+	padding: 8px;
+	margin: 1em;
+}
+
+/* The site logo, centred above the address line. Height is fixed and width
+   follows, so an operator's own logo of any aspect ratio keeps its shape. */
+.banner_logo_link {
+	display: inline-block;
+}
+
+.banner_logo {
+	display: block;
+	height: 200px;
+	width: auto;
+	max-width: 100%;
+	margin: 0 auto 4px;
+}
+
+input {
+	outline-width: 0;
+	color: var(--theme-input-text);
+	background-color: var(--theme-field);
+}
+
+input:focus {
+	border-color: var(--theme-chrome);
+	border-style: inset;
+	border-width: 2px;
+}
+
+textarea {
+	outline-width: 0;
+	color: var(--theme-input-text);
+	background-color: var(--theme-field);
+}
+
+textarea:focus {
+		border-color: var(--theme-chrome);
+		border-style: inset;
+		border-width: 2px;
+}
+
+#heading_image {
+	max-height: 160px;
+}
+
+#about_button {
+	border-width: 0;
+	background: none;
+}
+
+.form {
+	border-color: var(--theme-chrome);
+	border-width: 2px;
+	border-style: solid;
+	padding: 8px;
+	float: right;
+	position: -webkit-sticky;
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	background-color: var(--theme-chrome);
+	z-index: 255;
+}
+
+.panel {
+	border-color: var(--theme-chrome);
+	border-width: 2px;
+	border-style: solid;
+	padding: 8px;
+	background-color: var(--theme-chrome);
+}
+
+.form textarea {
+	width: 30em;
+	height: 10em;
+}
+
+input[type=button],input[type=submit] {
+	padding: 4px;
+	color: var(--theme-text);
+	text-decoration: none;
+	font-weight: bold;
+	border-width: 2px;
+	border-style: outset;
+	border-color: rgba(0,0,0,.2);
+	background-color:rgba(0,0,0,.2);
+	border-radius: 4px;
+}
+
+input[type=button]:hover, input[type=submit]:hover {
+	border-style: solid;
+	background-color:rgba(0,0,0,.04);
+	cursor: pointer;
+}
+
+.post_header {
+	padding: 4px;
+	background-color: rgba(var(--theme-frame-rgb),.4);
+}
+
+.post {
+	color: var(--theme-text);
+	border-radius: 4px;
+	margin-left: 0.5em;
+	margin-bottom: 0.5em;
+	border-width: 2px;
+	border-style: solid;
+	background-color:var(--theme-post-background);
+	border-color: var(--theme-post-border);
+}
+
+.selected_post {
+	border-color: var(--theme-accent);
+}
+
+.greentext {
+	color: var(--theme-greentext);
+}
+
+.bluetext {
+	color: var(--theme-bluetext);
+}
+
+.redtext {
+	font-weight: bold;
+	font-size: 1.5em;
+	color: red;
+	text-transform: uppercase;
+}
+
+.spoiler {
+	background-color: black;
+	color: black;
+	padding: 0.3em;
+	margin: 0.3em;
+}
+
+.spoiler:hover {
+	color: white;
+}
+
+.threedtext {
+	text-shadow: 0 1px 0 #ccc,
+		0 2px 0 #c9c9c9,
+		0 3px 0 #bbb,
+		0 4px 0 #b9b9b9,
+		0 5px 0 #aaa,
+		0 6px 1px rgba(0,0,0,.1),
+		0 0 5px rgba(0,0,0,.1),
+		0 1px 3px rgba(0,0,0,.3),
+		0 3px 5px rgba(0,0,0,.2),
+		0 5px 10px rgba(0,0,0,.25),
+		0 10px 10px rgba(0,0,0,.2),
+		0 20px 20px rgba(0,0,0,.15);
+}
+
+.rainbowtext {
+	animation: rainbow 1s infinite;
+}
+
+@keyframes rainbow {
+	0%{color: crimson;}
+	25%{color: violet;}
+	50%{color: aqua;}
+	75%{color: violet;}
+	100%{color: crimson;}
+}
+
+.shaketext {
+	animation: shake 0.5s infinite;
+	display: inline-block;
+}
+
+@keyframes shake {
+	0% { transform: translate(1px, 1px) rotate(0deg); }
+	10% { transform: translate(-1px, -2px) rotate(-1deg); }
+	20% { transform: translate(-3px, 0px) rotate(1deg); }
+	30% { transform: translate(3px, 2px) rotate(0deg); }
+	40% { transform: translate(1px, -1px) rotate(1deg); }
+	50% { transform: translate(-1px, 2px) rotate(-1deg); }
+	60% { transform: translate(-3px, 1px) rotate(0deg); }
+	70% { transform: translate(3px, 1px) rotate(-1deg); }
+	80% { transform: translate(-1px, -1px) rotate(1deg); }
+	90% { transform: translate(1px, 2px) rotate(0deg); }
+}
+
+.glow {
+  color: white;
+  text-align: center;
+  -webkit-animation: glow 1s ease-in-out infinite alternate;
+  -moz-animation: glow 1s ease-in-out infinite alternate;
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+@-webkit-keyframes glow {
+  from {
+    text-shadow: 0 0 0.5em #FFFFFF, 0 0 0.6em #FFFFFF;
+  }
+  to {
+    text-shadow: 0 0 1.1em #00FF00, 0 0 1.2em #00FF00;
+  }
+}
+
+
+.post_content a {
+	padding: 0px;
+	border: none;
+	background: none;
+	color: var(--theme-link);
+	font-weight: bold;
+	font-style: italic;
+	text-decoration: overline;
+ 	text-shadow: 3px 3px black;
+}
+
+.post_content a:hover {
+	color: var(--theme-link-hover);
+}
+
+code {
+	font-family: monospace;
+	background: black;
+	color: white;
+}
+
+.post_content {
+	margin-left: 0.5em;
+	overflow-wrap: break-word;
+	overflow: hidden;
+	max-height: 25em;
+  text-overflow: ellipsis;
+}
+
+.post_content:hover {
+	max-height: none;
+}
+
+
+
+/* --- the captcha -------------------------------------------------------------
+   The image is black glyphs on transparency, so it must sit on something
+   light: the field colour, which a theme with a dark field (cyb, blame)
+   replaces with a light colour of its own. The handheld layout restyles the
+   block further down. Here, for regular screens: image above, answer below. */
+.captcha_form {
+	margin: 4px 0;
+}
+
+.captcha_form img {
+	display: block;
+	margin-bottom: 4px;
+	background-color: var(--theme-field);
+}
+
+/* captchav2: a wider image, then a row of emoji to tick. Each is a large
+   target -- the whole label is the checkbox -- and the emoji are drawn with
+   the device's colour emoji face, not the theme's font, which may have none. */
+.captcha_v2 img,
+.captcha_v3 img {
+	max-width: 100%;
+	height: auto;
+}
+
+.captcha_picks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 0;
+	padding: 4px 0 0;
+	border: none;
+}
+
+.captcha_pick {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px 3px 4px;
+	border: 2px outset var(--theme-bevel-light);
+	background-color: var(--theme-field);
+	color: var(--theme-input-text);
+	cursor: pointer;
+}
+
+.captcha_pick:has(input:checked) {
+	border-style: inset;
+	outline: 2px solid var(--theme-accent);
+	outline-offset: -2px;
+}
+
+.captcha_emoji {
+	font-size: 1.8em;
+	line-height: 1;
+	font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+}
+
+/* captchav3's boxes hold numbers, in the theme's own font. */
+.captcha_number {
+	min-width: 2ch;
+	font-size: 1.3em;
+	font-weight: bold;
+	line-height: 1.2;
+	text-align: center;
+}
+
+/* --- the honeypot -----------------------------------------------------------
+   A field in the posting form that must come back empty. It is moved out of
+   sight rather than given display:none, which the scripts it is there to
+   catch know to skip. */
+.form_trap {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}

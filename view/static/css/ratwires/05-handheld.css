@@ -1,0 +1,637 @@
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	/* Touch scrolling needs no vertical scrollbar stepper buttons. */
+	::-webkit-scrollbar-button:vertical,
+	::-webkit-scrollbar-button:start:vertical {
+		display: none;
+		height: 0;
+	}
+
+	/* The corner rail would sit on the docked composer here; the pair lives in
+	   the mobile bar instead, centred between the two tabs by the nav's own
+	   justify-content:space-between. */
+	.board_jump {
+		display: none;
+	}
+
+	/* Look is inherited from the shared rule; only the sizing differs here.
+	   Sized for a thumb: 44px wide, the usual minimum touch target, and 32px
+	   tall -- level with the Overboard tab at the other end of the bar, so
+	   the bar keeps its height. */
+	.mobile_board_jump .board_jump_button {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 32px;
+		padding: 0;
+		margin-top: 0;
+	}
+
+	.mobile_board_jump .jump_up::before,
+	.mobile_board_jump .jump_down::before {
+		font-size: 20px;
+	}
+
+	html {
+		height: 100%;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	/* The device shell. `ridge` derives its own light and dark edges from the
+	   border colour, so the bezel bevels itself from the chrome purple.
+	   top/left + 100% rather than `inset: 0`: universally supported, and the
+	   minifier can't collapse it into a shorthand old browsers would drop.
+	   background-image is deliberately not reset, so the bg.png tile from the
+	   base body rule shows through as the desktop pattern. */
+	body {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		box-sizing: border-box;
+		color: var(--theme-text);
+		/* Zoomed ~10%. Everything sized in em below keys off this, so the
+		   banner, post headers, captions, field height and body text all
+		   scale from here; the px values are stepped up to match. */
+		font-size: 110%;
+		font-family: var(--theme-mobile-font);
+		border: 7px ridge var(--theme-chrome);
+		border-radius: 0;
+		box-shadow:
+			inset 0 0 0 1px var(--theme-frame),
+			inset 0 0 0 2px var(--theme-bevel-light);
+	}
+
+	/* --- title bar ---------------------------------------------------------
+	   The banner is dropped wholesale on handhelds: the bitcoin/TOR line, the
+	   About disclosure and the theme switcher all go, leaving the ridged bezel
+	   as the top edge. Themes stay reachable by URL (/style/ratwires, /style/cyb).
+	   Hiding it removes it as a flex item, so the ordering below is unaffected. */
+	.banner {
+		display: none;
+	}
+
+	/* --- the content well -------------------------------------------------
+	   Transparent so the body's bg.png tile reads as the desktop pattern,
+	   exactly as on the full-size layout. Matches .board_container on the
+	   index, .panel on /mod, bare content on the redirect pages.
+	   min-height:0 lets a flex child actually scroll instead of overflowing. */
+	body > *:not(.banner):not(.posting_deck):not(.mobile_navigation):not(.theme_switcher) {
+		order: 2;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		overflow-x: hidden;
+		-webkit-overflow-scrolling: touch;
+		margin: 0;
+		padding: var(--mobile-content-padding, 8px);
+		box-sizing: border-box;
+		background-color: transparent;
+		border: none;
+		border-top: 1px solid var(--theme-frame);
+		box-shadow: inset 0 1px 0 rgba(var(--theme-frame-rgb),.45);
+	}
+
+	/* The posts scroll independently above the tabs and bottom composer. */
+	body > .board_container {
+		--mobile-content-padding: 3px;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.board_container > .post.root_post {
+		order: 0;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding: 8px;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	/* Tabs stay directly above the composer, outside the post scroller. */
+	.board_tabs {
+		order: 1;
+		flex: 0 0 auto;
+		gap: 3px;
+		margin: auto 0 0;
+		padding: 5px 7px 0;
+		border: none;
+		border-bottom: 1px solid var(--theme-frame);
+		background-color: var(--theme-chrome);
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(var(--theme-text-rgb),.3) 0, rgba(var(--theme-text-rgb),.3) 1px,
+			rgba(var(--theme-frame-rgb),.2) 1px, rgba(var(--theme-frame-rgb),.2) 2px
+		);
+		box-shadow: inset 0 1px 0 rgba(var(--theme-text-rgb),.45);
+	}
+
+	.board_container > .collapsed_board_header {
+		order: 2;
+		flex: 0 0 auto;
+		margin: 0 7px;
+		border-color: var(--theme-accent);
+	}
+
+	.board_tab,
+	.board_tab_label {
+		clip-path: polygon(
+			4px 24%, 6px 10%, 9px 2px, 13px 0,
+			calc(100% - 13px) 0, calc(100% - 9px) 2px, calc(100% - 6px) 10%, calc(100% - 4px) 24%,
+			100% 100%, 0 100%
+		);
+	}
+
+	.board_tab_label::before {
+		padding: 3px 5px 3px 12px;
+		font-size: 1.2em;
+	}
+
+	.board_tab_link {
+		padding: 4px 13px 3px 2px;
+		font-size: .82em;
+	}
+
+	.board_tab.active_board .board_tab_link {
+		padding-top: 6px;
+	}
+
+	.board_tab.active_board .board_tab_label::before {
+		padding-top: 5px;
+	}
+
+	/* --- flat thread presentation -----------------------------------------
+	   Mobile deliberately diverges from the desktop board: no nesting, because
+	   it clutters a narrow screen fast. The DOM stays nested (desktop needs it
+	   for <details> subtree collapsing), but here .post is reduced to a bare
+	   wrapper and the card moves onto the header/content pair -- so depth adds
+	   neither indent nor an enclosing box, and every post reads at the same
+	   level. The thread structure is carried by the backlinks instead. */
+	.post {
+		margin: 0;
+		padding: 0;
+		color: var(--theme-text);
+		border: none;
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+	}
+
+	.post .post {
+		margin-left: 0;
+	}
+
+	/* The outermost wrapper post holds no message of its own. */
+	.root_post > .post_header,
+	.root_post > .post_content {
+		display: none;
+	}
+
+	/* The desktop disclosure must not leave an inaccessible collapsed board
+	   after resizing into the mobile layout, where its summary is hidden. */
+	.root_post::details-content {
+		content-visibility: visible;
+	}
+
+	.post_header {
+		padding: 3px 8px;
+		border: 2px ridge var(--theme-chrome);
+		border-bottom: none;
+		background-color: rgba(var(--theme-frame-rgb),.45);
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(var(--theme-text-rgb),.16) 0, rgba(var(--theme-text-rgb),.16) 1px,
+			transparent 1px, transparent 2px
+		);
+		font-size: .95em;
+	}
+
+	.post_content {
+		margin: 0 0 8px 0;
+		padding: 7px 9px;
+		border: 2px ridge var(--theme-chrome);
+		border-top: none;
+		background-color: rgba(0,0,0,.25);
+		box-shadow: 0 1px 0 rgba(var(--theme-frame-rgb),.4);
+	}
+
+	/* Desktop clamps long posts and reveals them on :hover, which touch
+	   devices don't have. Show the whole post instead. */
+	.post_content {
+		max-height: none;
+		overflow: visible;
+	}
+
+	/* .post carries no border here, so the selection accent moves to the card. */
+	.selected_post > .post_header,
+	.selected_post > .post_content {
+		border-color: var(--theme-accent);
+	}
+
+	/* --- backlinks --------------------------------------------------------
+	   Hidden on desktop (see the base rules above); this is how a flat thread
+	   keeps its structure. ">>N" in the header points at the post being
+	   replied to; the row under the message points at the replies. */
+	.backlinks {
+		display: block;
+		margin-top: 7px;
+		padding-top: 5px;
+		border-top: 1px solid rgba(var(--theme-text-rgb),.22);
+		font-size: .82em;
+	}
+
+	.backlink_parent {
+		display: inline;
+	}
+
+	/* The history page lists one poster's posts from every board, so each
+	   keeps its board button, which opens the post in its place there. */
+	.history .post_header .thread_board {
+		display: inline;
+	}
+
+	/* --- the message box carries the identity ----------------------------
+	   On a phone the header row is the number, the date and the controls, and
+	   nothing else fits beside them. The title and the board tag move above
+	   the message, and who wrote it signs off under it. The header's own
+	   copies go, or everything would be drawn twice. */
+	/* SAGE SITS IN THE MESSAGE BOX'S BOTTOM LINE, at the LEFT, under the ID.
+
+	   No gap is cut in the line for it any more. The tag is an opaque raised
+	   chip now, so it masks the box's own 2px ridge bottom border where it sits
+	   and the line runs into it either side on its own. That replaced a
+	   linear-gradient drawn with a transparent stretch in it, which was only
+	   needed while the tag had no background of its own to hide the line. */
+	.post_content .post_sage_mark {
+		display: block;
+		position: absolute;
+		bottom: 0;
+		left: 12px;
+		/* Centred on the line, so it sits IN it rather than above it. On an
+		   absolutely positioned box the margin lifts it clear of `bottom: 0`,
+		   so this rides 4px higher than dead centre. */
+		transform: translateY(50%);
+		margin-bottom: 4px;
+		line-height: 1;
+		/* THE RAISED CHIP IS HANDHELD ONLY. The old Unix toolkit look, where
+		   anything standing proud of the surface did it on a light/dark bevel
+		   pair; `outset` draws exactly that from one colour. It belongs here
+		   and not on .post_sage, because the desktop copy sits in a row of
+		   plain text where a raised object would be the only one. */
+		background-color: var(--theme-chrome);
+		border: 2px outset var(--theme-bevel-light);
+		padding: 0 5px;
+		/* Not the body font: the board's proportional face makes it read as a
+		   word in the sentence rather than as a stamp on the post. */
+		font-family: var(--theme-field-font);
+	}
+
+	.post_content_saged { position: relative; }
+
+	.post_header > .post_author,
+	.post_header > .post_tripcode,
+	.post_header > .post_sage,
+	.post_header > .post_poster_id,
+	.post_header .thread_board,
+	.post_header .thread_title_link {
+		display: none;
+	}
+
+	/* "board: title", ONE RUNNING LINE OF TEXT.
+
+	   Normal flow and not flex, which this was: as flex items the board, the
+	   colon and the title are three boxes, and a title too long for the rest
+	   of the line wraps as a whole box onto the next one instead of carrying
+	   on after the colon. In normal flow it reads and breaks as a sentence. */
+	.post_content_heading {
+		/* Explicit: the base rule hides this for the desktop board, and leaving
+		   `display` unset here inherits that `none` and draws nothing at all. */
+		display: block;
+		margin-bottom: 7px;
+		padding-bottom: 5px;
+		border-bottom: 1px solid rgba(var(--theme-text-rgb),.22);
+	}
+
+	.thread_heading_separator {
+		/* The space belongs after the colon, never before it. */
+		margin-right: .35em;
+		font-weight: bold;
+	}
+
+	.post_content_heading .thread_title_link {
+		margin-left: 0;
+		/* The title is the heading here, not a note beside the number. */
+		font-size: 1.05em;
+	}
+
+	/* The board reads as the first word of that line, so it drops the chip it
+	   wears in the desktop header: the chip's own padding put a gap between
+	   the name and the colon ("general :"). It keeps the link colour and the
+	   weight, so it still looks like the control it is.
+
+	   It also has to beat the .post_content a rule, which styles message
+	   quotelinks — overlined, italic and shadowed — and made this read as a
+	   struck-through mistake. */
+	.post_content_heading .thread_board {
+		margin: 0;
+		padding: 0;
+		background: none;
+		color: var(--theme-text-strong);
+		font-style: normal;
+		font-weight: bold;
+		text-decoration: none;
+		text-shadow: none;
+	}
+
+	.post_content_heading .thread_board:hover,
+	.post_content_heading .thread_board:focus {
+		text-decoration: underline;
+	}
+
+	/* BOTTOM RIGHT of the message box: last in the flow, pushed to the end.
+	   In normal flow rather than absolutely positioned, so it can never land
+	   on top of the message however short or long that message is. */
+	.post_signature {
+		display: flex;
+		justify-content: flex-end;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: .4em;
+		margin-top: 7px;
+		padding-top: 5px;
+		border-top: 1px solid rgba(var(--theme-text-rgb),.22);
+		font-size: .9em;
+	}
+
+	/* Beat the .post_content a rule, which is styled for message quotelinks.
+	   Undecorated at rest; the underline is reserved for hover/press, which
+	   also has to out-specify the base `a:hover` rule. */
+	.post_content a.backlink,
+	.post_header a.backlink {
+		margin-right: .55em;
+		color: var(--theme-text-strong);
+		font-weight: bold;
+		font-style: normal;
+		text-decoration: none;
+		text-shadow: none;
+	}
+
+	.post_content a.backlink:hover,
+	.post_header a.backlink:hover,
+	.post_content a.backlink:focus,
+	.post_header a.backlink:focus,
+	.post_content a.backlink:active,
+	.post_header a.backlink:active {
+		text-decoration: underline;
+	}
+
+	/* Following a backlink makes its destination the :target, so the post
+	   highlights itself -- 4chan's jump-to-post feedback, without JS.
+	   The highlight persists until another post is targeted. */
+	.post:target > .post_header,
+	.post:target > .post_content {
+		border-color: var(--theme-accent);
+	}
+
+	.post:target > .post_header {
+		background-color: rgba(var(--theme-accent-rgb),.42);
+	}
+
+	.post:target > .post_content {
+		background-color: rgba(var(--theme-accent-rgb),.2);
+	}
+
+	/* --- bottom bezel: sunken field in the chrome purple ------------------- */
+	.form {
+		order: 3;
+		flex: 0 0 auto;
+		position: static;
+		float: none;
+		width: 100%;
+		max-height: 62%;
+		overflow-y: auto;
+		margin: 0;
+		padding: 7px;
+		border: none;
+		border-top: 1px solid var(--theme-frame);
+		border-radius: 0;
+		box-sizing: border-box;
+		background-color: var(--theme-chrome);
+		box-shadow: inset 0 1px 0 rgba(var(--theme-text-rgb),.4);
+	}
+
+	/* Closed: the summary masquerades as an empty text field, with a bevelled
+	   toggle button pinned to its right so it's obvious the bar opens and
+	   closes. flex puts the label and that button on opposite ends. */
+	.form > .form_heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 9px;
+		padding: 8px 10px;
+		border: 2px inset var(--theme-bevel-light);
+		border-radius: 0;
+		background-color: var(--theme-field);
+		color: var(--theme-heading-text);
+		font-size: 18px;
+		cursor: pointer;
+		list-style: none;
+	}
+
+	/* get_post_form_title() ends in a <br/>, which would otherwise sit between
+	   the label and the toggle as a third flex item. */
+	.form > .form_heading br {
+		display: none;
+	}
+
+	/* The toggle itself: a Platinum push button whose arrow points the way the
+	   form will move -- up to open, down to close. Sized in px so it stays put
+	   when the caption shrinks in the open state. */
+	.form > .form_heading::after {
+		content: "\25B2";
+		flex: 0 0 auto;
+		min-width: 2.4em;
+		padding: 3px 0;
+		border: 1px solid var(--theme-frame);
+		border-radius: 4px;
+		background-color: var(--theme-chrome);
+		background-image: linear-gradient(to bottom, rgba(255,255,255,.3), rgba(var(--theme-frame-rgb),.3));
+		box-shadow: inset 1px 1px 0 rgba(var(--theme-text-rgb),.45), inset -1px -1px 0 rgba(var(--theme-frame-rgb),.4);
+		color: var(--theme-text);
+		font-size: 13px;
+		line-height: 1.35;
+		text-align: center;
+	}
+
+	.form[open] > .form_heading::after {
+		content: "\25BC";
+		background-image: linear-gradient(to bottom, rgba(var(--theme-frame-rgb),.34), rgba(255,255,255,.18));
+		box-shadow: inset 1px 1px 0 rgba(var(--theme-frame-rgb),.45), inset -1px -1px 0 rgba(var(--theme-text-rgb),.35);
+	}
+
+	.form > .form_heading::-webkit-details-marker,
+	.form > .form_heading::marker {
+		display: none;
+		content: "";
+	}
+
+	/* Open: the summary shrinks to a caption above the real field. */
+	.form[open] > .form_heading {
+		padding: 0 2px 4px;
+		border: none;
+		background: none;
+		color: var(--theme-text);
+		font-size: .8em;
+		font-weight: bold;
+	}
+
+	.form_contents form {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 7px;
+	}
+
+	/* The layout <br/>s become stray flex items; drop them. */
+	.form_contents br {
+		display: none;
+	}
+
+	.form textarea {
+		order: 1;
+		flex: 1 1 8em;
+		width: auto;
+		height: 2.6em;
+		min-height: 2.6em;
+		max-height: 31vh;
+		padding: 7px 9px;
+		border: 2px inset var(--theme-bevel-light);
+		border-radius: 0;
+		box-sizing: border-box;
+		resize: vertical;
+		background-color: var(--theme-field);
+		color: var(--theme-input-text);
+		font-family: var(--theme-field-font);
+		font-size: 18px; /* <16px makes iOS zoom the page on focus */
+	}
+
+	.form textarea:focus,
+	.form input[type=text]:focus {
+		border: 2px inset var(--theme-bevel-light);
+		box-shadow: 0 0 0 2px var(--theme-accent);
+	}
+
+	/* Platinum push button in the board's colours. appearance:none is kept so
+	   iOS doesn't repaint it as a native pill and discard the bevel. */
+	.form_contents input[type=submit] {
+		order: 2;
+		flex: 0 0 auto;
+		padding: 7px 18px;
+		-webkit-appearance: none;
+		appearance: none;
+		border: 1px solid var(--theme-frame);
+		border-radius: 4px;
+		background-color: var(--theme-chrome);
+		background-image: linear-gradient(to bottom, rgba(255,255,255,.3), rgba(var(--theme-frame-rgb),.3));
+		box-shadow: inset 1px 1px 0 rgba(var(--theme-text-rgb),.45), inset -1px -1px 0 rgba(var(--theme-frame-rgb),.4);
+		color: var(--theme-text);
+		font-weight: bold;
+		font-size: 17px;
+		cursor: pointer;
+	}
+
+	.form_contents input[type=submit]:active {
+		background-image: linear-gradient(to bottom, rgba(var(--theme-frame-rgb),.34), rgba(255,255,255,.18));
+		box-shadow: inset 1px 1px 0 rgba(var(--theme-frame-rgb),.45), inset -1px -1px 0 rgba(var(--theme-text-rgb),.35);
+	}
+
+	/* Captcha sits on its own row beneath the message field, stacked: image
+	   on top, answer field full-width underneath it. Its <br/>s are hidden
+	   with the others, so flex does the arranging. */
+	.captcha_form {
+		order: 4;
+		flex: 1 1 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 7px;
+	}
+
+	.captcha_form img {
+		flex: 0 0 auto;
+		height: 2.9em;
+		width: auto;
+		border: 2px inset var(--theme-bevel-light);
+		background-color: var(--theme-field);
+	}
+
+	.captcha_form input[type=text] {
+		flex: 0 0 auto;
+		align-self: stretch;
+		width: auto;
+		min-width: 0;
+		padding: 7px 9px;
+		border: 2px inset var(--theme-bevel-light);
+		border-radius: 0;
+		box-sizing: border-box;
+		background-color: var(--theme-field);
+		color: var(--theme-input-text);
+		font-size: 18px;
+	}
+
+	/* captchav2's image holds up to three words, so it takes the width it
+	   is given rather than the text captcha's fixed height; the emoji sit
+	   three to a row, each a thumb-sized target. */
+	.captcha_v2 img,
+	.captcha_v3 img {
+		align-self: stretch;
+		width: 100%;
+		max-width: 320px;
+		height: auto;
+	}
+
+	.captcha_picks {
+		align-self: stretch;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 6px;
+	}
+
+	.captcha_pick {
+		justify-content: center;
+		padding: 6px 4px;
+	}
+
+	/* captchav3's four numbers fit one row. */
+	.captcha_v3 .captcha_picks {
+		grid-template-columns: repeat(4, 1fr);
+	}
+
+}
+
+/* Landscape handhelds: slim the chrome so the well keeps most of the short
+   viewport, while the four-sided ridge stays intact. */
+@media (orientation: landscape) and (max-height: 600px) {
+	body {
+		border-width: 4px;
+	}
+
+	.form textarea {
+		height: 2.2em;
+		min-height: 2.2em;
+		max-height: 37vh;
+	}
+
+	.post {
+		margin-bottom: 5px;
+	}
+}
+
