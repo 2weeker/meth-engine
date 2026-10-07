@@ -246,7 +246,7 @@ func TestComposer(t *testing.T) {
 	if !has(html, `<textarea name="msg" id="msg" aria-label="Message" autofocus="true" maxlength="512" placeholder="512 character limit"></textarea>`) {
 		t.Error("the message box carries the limit and the hint")
 	}
-	if !has(html, `<details class="form"><summary class="form_heading">New thread <br></summary>`) {
+	if !has(html, `<details class="form"><summary class="form_heading">Posting <br></summary>`) {
 		t.Error("a fresh form is sent closed")
 	}
 	page.Composer = Composer{Open: true, Message: "draft <b>", Error: "Too long"}
@@ -257,6 +257,9 @@ func TestComposer(t *testing.T) {
 	page.ReplyTo = "7"
 	if html := render(t, Layout(page)); !has(html, `Replying to post 7 <br>`) || !has(html, `action="/post/create/7"`) || !has(html, `name="parent" id="parent" value="7">`) {
 		t.Error("the reply form names its parent")
+	}
+	if html := render(t, Layout(page)); !has(html, `<a href="/" class="board_jump_button mobile_post_button">Post</a>`) {
+		t.Error("the mobile bar's Post button leads back to the board")
 	}
 }
 
