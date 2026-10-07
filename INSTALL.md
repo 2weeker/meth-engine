@@ -198,20 +198,32 @@ flight before exiting.
 
 ### Backups
 
-The posts, bans, filters and moderators live in the `db` volume. Back it up
-with:
+The posts, bans, filters and moderators live in the `db` volume.
 
 ```sh
-docker compose exec -T db pg_dump -U meth -d meth > meth-$(date +%F).sql
+make backup
 ```
 
-and restore into a fresh database with:
+writes `backups/meth-YYYYMMDD-HHMMSS.dump` (a compressed `pg_dump`, taken
+while the site keeps running) and copies `config.yaml` beside it as
+`backups/meth-YYYYMMDD-HHMMSS.config.yaml`. `.env` is not copied: it holds
+the secrets, so keep it somewhere safe yourself. Restoring onto a new server
+with a different `METH_SECRET` works, but logs moderators out, and with a
+different `METH_POSTER_ID_SECRET` new posts get different poster IDs.
 
 ```sh
-docker compose exec -T db psql -U meth -d meth < meth-YYYY-MM-DD.sql
+make restore                                   # the newest backup
+make restore FILE=backups/meth-20261006-153000.dump
 ```
 
-`make reset` deletes the volume; take a backup first.
+asks for `yes`, stops the engine, replaces the whole database with the
+backup in one transaction, and starts the engine again. If the restore
+fails, the database is left as it was. To restore a site's text as well,
+copy the matching `.config.yaml` over `config.yaml` and `make restart`.
+
+Copy the `backups/` folder off the server regularly; a backup on the same
+disk does not survive losing the disk. `make reset` deletes the volume, so
+run `make backup` first.
 
 ### Running behind a Caddy on the host instead
 

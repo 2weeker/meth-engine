@@ -2,7 +2,7 @@ COMPOSE ?= docker compose
 BIN     := bin/meth
 
 .DEFAULT_GOAL := up
-.PHONY: deploy update check health up dev down restart rebuild logs ps shell db reset \
+.PHONY: deploy update check health up dev down restart rebuild logs ps shell db reset backup restore \
         generate build run test vet fmt clean
 
 deploy:
@@ -70,6 +70,28 @@ reset:
 	@printf "This deletes every post, ban and user. Type yes to continue: "; \
 	read ans; [ "$$ans" = "yes" ] || { echo "aborted"; exit 1; }
 	$(COMPOSE) down -v
+
+backup:
+	@mkdir -p backups
+	@$(COMPOSE) up -d --wait db
+	@stamp=$$(date +%Y%m%d-%H%M%S); out=backups/meth-$$stamp.dump; \
+	$(COMPOSE) exec -T db pg_dump -U meth -d meth --format=custom > $$out || { rm -f $$out; echo "backup failed"; exit 1; }; \
+	if [ -f config.yaml ]; then cp config.yaml backups/meth-$$stamp.config.yaml; fi; \
+	echo "Backed up to $$out ($$(du -h $$out | cut -f1))"
+
+restore:
+	@file="$(FILE)"; \
+	if [ -z "$$file" ]; then file=$$(ls -1t backups/*.dump 2>/dev/null | head -n 1); fi; \
+	if [ ! -f "$$file" ]; then echo "No backup found. Use: make restore FILE=backups/meth-YYYYMMDD-HHMMSS.dump"; exit 1; fi; \
+	printf "This replaces every post, ban, filter and user with %s. Type yes to continue: " "$$file"; \
+	read ans; [ "$$ans" = "yes" ] || { echo "aborted"; exit 1; }; \
+	$(COMPOSE) up -d --wait db || exit 1; \
+	$(COMPOSE) stop meth; \
+	$(COMPOSE) exec -T db pg_restore -U meth -d meth --clean --if-exists --no-owner --single-transaction < "$$file"; \
+	status=$$?; \
+	$(COMPOSE) up -d meth; \
+	if [ $$status -ne 0 ]; then echo "restore failed; the database was left as it was"; exit $$status; fi; \
+	echo "Restored $$file"
 
 generate:
 	go tool templ generate
