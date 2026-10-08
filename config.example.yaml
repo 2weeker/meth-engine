@@ -26,7 +26,7 @@ tags:
   max: 3
   length: 16
 about: >-
-  A singleboard 2channel-inspired anonymous textboard powered by METH, the Mind Engaging Text Hub engine. There is a {max_posts} posting limit, after which the oldest post that has been at the top level the longest is purged.
+  An anonymous textboard powered by <a href="https://github.com/2weeker/meth-engine">METH</a>, the <i><b>Mind Engaging Text Hub</b></i> engine. There is a {max_posts} posting limit, after which the oldest post that has been at the top level the longest is purged.
 webring:
 - label: example
   url: https://example.com
