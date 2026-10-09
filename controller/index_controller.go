@@ -49,7 +49,7 @@ func (a *App) Index(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	_, mod := a.modUser(r)
-	page := view.Page{Site: a.Cfg.Site, BaseURL: a.baseURL(r), CSRF: handler.CSRFToken(r)}
+	page := a.page(r)
 	if replyTo != nil {
 		page.ReplyTo = strconv.FormatInt(*replyTo, 10)
 	}
@@ -120,8 +120,8 @@ func (a *App) History(w http.ResponseWriter, r *http.Request) error {
 		id = ""
 	}
 	_, mod := a.modUser(r)
-	page := view.Page{Site: a.Cfg.Site, BaseURL: a.baseURL(r), CSRF: handler.CSRFToken(r),
-		History: id, Threads: view.History(posts, mod)}
+	page := a.page(r)
+	page.History, page.Threads = id, view.History(posts, mod)
 	if id == "" {
 		asked := []rune(r.PathValue("id"))
 		page.History = string(asked[:min(len(asked), 16)])

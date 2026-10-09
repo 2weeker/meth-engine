@@ -1,16 +1,7 @@
-/* coffee -- ratwires, in mocha. A reskin in the same sense as meth: ratwires' palette
-   structure kept relationship for relationship -- ground a little lighter
-   than its tile, chrome well below it, bevels bracketing the chrome, text in
-   a neighbouring warm tint rather than the chrome's own -- with the violet
-   traded for roast browns. Warmer and lower in saturation than ratwires, which is
-   the point: it is meant to be easier on the eyes.
-
-   Typography is deliberately not overridden; inheriting it is what keeps this
-   a variant of ratwires rather than a new look. */
 @import "./ratwires.css";
 
 :root {
-	/* Cream where ratwires is pink. */
+
 	--theme-text-strong: #fbeedc;
 	--theme-text: #f2dfc6;
 	--theme-text-rgb: 242,223,198;
@@ -18,19 +9,12 @@
 	--theme-field: #f5e6d3;
 	--theme-input-text: #2a1a0f;
 
-	/* Ratwires' own bg.png, recoloured rather than replaced: the same crinkled
-	   grain, rotated from violet to brown and desaturated (ImageMagick
-	   -modulate 68,40,163). It tiles exactly as bg.png does. Average #996b4f,
-	   0.97% texture variation against ratwires' 1.13%. The ground sits a little
-	   lighter than the tile, as ratwires' does. */
 	--theme-ground: #a67a5b;
 	--theme-background-image: url(/assets/coffee.png);
 
-	/* Caramel standing in for ratwires' vivid violet. */
 	--theme-accent: #d99a5b;
 	--theme-accent-rgb: 217,154,91;
 
-	/* A darker roast for the chrome, bracketed by its bevels. */
 	--theme-chrome: #6f4b35;
 	--theme-chrome-rgb: 111,75,53;
 	--theme-bevel-light: #8e684c;
@@ -38,21 +22,14 @@
 	--theme-tab-face: #5a3c29;
 	--theme-tab-light: #a88669;
 
-	/* Espresso, near-black, as ratwires' frame is near-black violet. Every
-	   hairline and translucent tint is mixed from it. */
 	--theme-frame: #1c110a;
 	--theme-frame-rgb: 28,17,10;
 
 	--theme-heading-text: #6f4b35;
 
-	/* Caramel links where ratwires has deeppink. */
 	--theme-link: #f8cd9f;
 	--theme-link-hover: #ffdcb5;
 
-	/* ratwires' lime and aqua are the loudest things on its page; here they are
-	   softened to sit with the browns -- and kept light enough to clear 4.5:1
-	   over the brightest of the handheld message box, which is lighter than
-	   the desktop post and the tighter of the two. */
 	--theme-greentext: #d3dea5;
 	--theme-bluetext: #bfdde2;
 	--theme-digit-check: rgba(255,214,160,.6);

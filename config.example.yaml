@@ -1,5 +1,6 @@
 title: meth
 description: a textboard powered by the Mind Engaging Text Hub engine
+theme: coffee
 banner:
   text: "test text"
   addresses:

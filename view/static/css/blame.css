@@ -1,0 +1,74 @@
+@import "./ratwires.css";
+
+:root {
+
+	--theme-text-strong: #e2dfd8;
+	--theme-text: #bcb9b1;
+	--theme-text-rgb: 188,185,177;
+
+	--theme-field: #0d0e0f;
+	--theme-input-text: #d4d1ca;
+
+	--theme-ground: #0d0d0d;
+	--theme-background-image: url(/assets/dark.png);
+
+	--theme-accent: #7d959c;
+	--theme-accent-rgb: 125,149,156;
+
+	--theme-chrome: #1a1b1d;
+	--theme-chrome-rgb: 26,27,29;
+	--theme-bevel-light: #393b3e;
+	--theme-bevel-dark: #060607;
+	--theme-tab-face: #131416;
+	--theme-tab-light: #292b2e;
+
+	--theme-frame: #000000;
+	--theme-frame-rgb: 0,0,0;
+
+	--theme-banner-background-color: rgba(9,9,10,.72);
+	--theme-banner-border-color: #26282b;
+
+	--theme-post-background: rgba(17,18,19,.62);
+	--theme-post-border: rgba(160,158,150,.14);
+
+	--theme-heading-text: #bcb9b1;
+	--theme-link: #a7b1b3;
+	--theme-link-hover: #e2dfd8;
+
+	--theme-greentext: #8d9c7c;
+	--theme-bluetext: #7d959c;
+	--theme-digit-check: rgba(214,210,200,.55);
+
+	--theme-font: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", sans-serif;
+	--theme-mobile-font: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", sans-serif;
+	--theme-field-font: "IBM Plex Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+
+	color-scheme: dark;
+}
+
+input, textarea, button {
+	font-family: var(--theme-font);
+}
+
+.captcha_form img {
+	background-color: #cfccc4;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.post_header,
+	.post_content {
+		border-color: #2a2c2f;
+	}
+
+	.post_header {
+		border-top-style: solid;
+		border-left-style: solid;
+		border-right-style: solid;
+	}
+
+	.post_content {
+		border-left-style: solid;
+		border-right-style: solid;
+		border-bottom-style: solid;
+	}
+}

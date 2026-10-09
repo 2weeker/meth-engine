@@ -11,13 +11,12 @@ import (
 	"meth-enginev2/config"
 	"meth-enginev2/helper/dubs"
 	"meth-enginev2/helper/formatter"
+	"meth-enginev2/helper/themes"
 	"meth-enginev2/model"
 )
 
 //go:embed static/css static/fonts/*.woff2 static/assets static/favicon.ico static/favicon.png static/favicon.gif static/apple-touch-icon.png static/robots.txt
 var Static embed.FS
-
-const Theme = "coffee"
 
 const HoneypotField = "website"
 
@@ -61,8 +60,34 @@ type Composer struct {
 	Error   string
 }
 
+type Theme struct {
+	Name, Label string
+	Current     bool
+}
+
+func Stylesheet(theme string) string {
+	return "/css/" + themes.Resolve(theme, "") + ".css"
+}
+
+func ThemesFor(current string) []Theme {
+	out := make([]Theme, len(themes.All))
+	for i, t := range themes.All {
+		out[i] = Theme{Name: t.Name, Label: t.Label, Current: t.Name == current}
+	}
+	return out
+}
+
+type SiteTag struct {
+	Name, Href string
+	Posts      int
+}
+
 type Page struct {
 	Site        config.Site
+	SiteTags    []SiteTag
+	Theme       string
+	Themes      []Theme
+	ReturnTo    string
 	BaseURL     string
 	History     string
 	ReplyTo     string
@@ -79,6 +104,7 @@ type Page struct {
 
 type ModPage struct {
 	Site          config.Site
+	Theme         string
 	Screen        string
 	CSRF          string
 	ID, IP        string

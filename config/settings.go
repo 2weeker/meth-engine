@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"meth-enginev2/helper/themes"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -47,8 +48,9 @@ type Site struct {
 
 	Webring []Link `yaml:"webring"`
 
+	Theme string `yaml:"theme"`
+
 	Boards         yaml.Node `yaml:"boards"`
-	Theme          yaml.Node `yaml:"theme"`
 	Overboard      yaml.Node `yaml:"overboard"`
 	CaptchaVersion yaml.Node `yaml:"captcha_version"`
 	LoginCaptcha   yaml.Node `yaml:"login_captcha"`
@@ -495,7 +497,6 @@ func LoadSite(path string) (Site, error) {
 	}{
 		{"rate_limit", "the rate limit was removed and posts are on the captcha (see captcha_post_limit)", s.RateLimit},
 		{"boards", "boards were removed and the site is one stream of posts: set captcha_version, captcha_post_limit, max_chars and tags at the top level instead", s.Boards},
-		{"theme", "the theme switcher was removed and the site is always in the coffee theme", s.Theme},
 		{"overboard", "the overboard was removed along with the boards", s.Overboard},
 		{"captcha_version", "captchav1 is the only captcha; captcha: true or false is the switch", s.CaptchaVersion},
 		{"login_captcha", "captchav1 is the only captcha; captcha: true or false is the switch", s.LoginCaptcha},
@@ -503,6 +504,13 @@ func LoadSite(path string) (Site, error) {
 		if r.node.Kind != 0 {
 			return s, fmt.Errorf("%s: line %d: %s is no longer a setting; %s, so remove it", path, r.node.Line, r.key, r.gone)
 		}
+	}
+	if s.Theme == "" {
+		s.Theme = themes.Fallback
+	} else if name, ok := themes.Lookup(s.Theme); ok {
+		s.Theme = name
+	} else {
+		return s, fmt.Errorf("%s: theme %q is not one of %s", path, s.Theme, strings.Join(themes.Names(), ", "))
 	}
 	if s.Tags != nil && s.Tags.On {
 		if l := s.Tags.limits(); l.Max < 1 || l.Max > maxMaxTags {

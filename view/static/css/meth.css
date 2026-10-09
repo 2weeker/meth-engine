@@ -1,0 +1,48 @@
+@import "./ratwires.css";
+
+:root {
+
+	--theme-text-strong: #d6f2ff;
+	--theme-text: #b3e2f6;
+	--theme-text-rgb: 179,226,246;
+	--theme-field: #cae9ff;
+
+	--theme-ground: #5cadfb;
+
+	--theme-background-image: url(/assets/meth.png);
+
+	--theme-accent: #00a2ff;
+	--theme-accent-rgb: 0,162,255;
+	--theme-selected-post-border: #00ebff;
+
+	--theme-chrome: #2f5d96;
+	--theme-chrome-rgb: 47,93,150;
+	--theme-bevel-light: #6d9ed6;
+	--theme-bevel-dark: #16304f;
+	--theme-tab-face: #24486f;
+	--theme-tab-light: #8fb6de;
+
+	--theme-frame: #041226;
+	--theme-frame-rgb: 4,18,38;
+
+	--theme-heading-text: #2f5d96;
+
+	--theme-link: #19f0ff;
+	--theme-link-hover: #b3f7ff;
+
+	color-scheme: dark;
+}
+
+body:has(.board_tab.selected_board) {
+	--divider-outline: #00ebff;
+}
+
+.board_tab.selected_board {
+	background-color: var(--divider-outline);
+}
+
+.selected_post,
+.selected_post > .post_header,
+.selected_post > .post_content {
+	border-color: #00ebff;
+}

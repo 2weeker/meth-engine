@@ -1,0 +1,42 @@
+@import "./ratwires.css";
+
+:root {
+	--theme-text-strong: #baffaa;
+	--theme-text: #dcffd5;
+	--theme-field: #071009;
+	--theme-ground: #0d0d0d;
+	--theme-accent: #68ff00;
+	--theme-chrome: #17361b;
+	--theme-bevel-light: #3d7042;
+	--theme-bevel-dark: #071209;
+	--theme-frame: #020702;
+	--theme-tab-face: #102915;
+	--theme-tab-light: #284f2f;
+	--theme-text-rgb: 220,255,213;
+	--theme-accent-rgb: 104,255,0;
+	--theme-chrome-rgb: 23,54,27;
+	--theme-frame-rgb: 2,7,2;
+
+	--theme-background-image: url(/assets/dark.png);
+	--theme-font: "Lucida Console", Monaco, monospace;
+	--theme-mobile-font: "Lucida Console", Monaco, monospace;
+	--theme-field-font: "Lucida Console", Monaco, monospace;
+	--theme-input-text: #dcffd5;
+	--theme-heading-text: #dcffd5;
+	--theme-post-border: rgba(104,255,0,.24);
+	--theme-post-background: rgba(104,255,0,.04);
+	--theme-banner-border-color: #3d7042;
+	--theme-banner-background-color: #071009;
+	--theme-link: #68ff00;
+	--theme-link-hover: #dcffd5;
+	--theme-greentext: yellow;
+	color-scheme: dark;
+}
+
+input, textarea, button {
+	font-family: var(--theme-font);
+}
+
+.captcha_form img {
+	background-color: #dcffd5;
+}

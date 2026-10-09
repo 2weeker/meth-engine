@@ -21,5 +21,11 @@ templ Banner(p Page) {
 			<summary id="about_button">About</summary>
 			<p id="about">@templ.Raw(string(p.Site.AboutHTML))</p>
 		</details>
+		if len(p.SiteTags) > 0 {
+			<details id="tags_opener" open>
+				<summary id="tags_button">Tags</summary>
+				@TagList(p.SiteTags)
+			</details>
+		}
 	</div>
 }

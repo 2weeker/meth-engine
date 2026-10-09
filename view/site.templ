@@ -7,10 +7,11 @@ import (
 )
 
 templ Layout(p Page) {
+	<!DOCTYPE html>
 	<html>
 		<head>
 			<meta charset="utf-8"/>
-			<link rel="stylesheet" type="text/css" href="/css/coffee.css"/>
+			<link rel="stylesheet" type="text/css" href={ Stylesheet(p.Theme) }/>
 			<link rel="icon" type="image/gif" href="/favicon.gif"/>
 			<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"/>
 			<link rel="icon" type="image/png" href="/favicon.png" sizes="32x32"/>
@@ -40,6 +41,7 @@ templ Layout(p Page) {
 			@Banner(p)
 			@BoardPage(p)
 			<div class="corner_controls">
+				@ThemeSwitcher(p.Themes, p.ReturnTo)
 				<a href="/mod" class="corner_button admin_button">admin</a>
 			</div>
 		</body>

@@ -1,0 +1,14 @@
+package view
+
+import "strconv"
+
+templ TagList(tags []SiteTag) {
+	<p class="tag_list">
+		for i, t := range tags {
+			if i > 0 {
+				{ " " }
+			}
+			<a href={ templ.SafeURL(t.Href) } class="tag_list_link">{ t.Name }<span class="tag_list_count">{ " (" + strconv.Itoa(t.Posts) + ")" }</span></a>
+		}
+	</p>
+}

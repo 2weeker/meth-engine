@@ -43,7 +43,8 @@ func TestLayoutRenders(t *testing.T) {
 		{ID: 10, Message: ">be me\n**bold**", CreatedAt: time.Now()},
 		{ID: 11, ParentID: &pid, Message: "reply", Sage: true, CreatedAt: time.Now()},
 	}
-	page := Page{Threads: Tree(posts, nil, false), Stats: "2 posts made per hour", CSRF: "tok", BaseURL: "https://meth.example"}
+	page := Page{Threads: Tree(posts, nil, false), Stats: "2 posts made per hour", CSRF: "tok", BaseURL: "https://meth.example",
+		Theme: "coffee", Themes: ThemesFor("coffee"), ReturnTo: "/"}
 	page.Site.Title, page.Site.Description = "meth", "a wall"
 	html := render(t, Layout(page))
 	for _, want := range []string{
@@ -63,13 +64,15 @@ func TestLayoutRenders(t *testing.T) {
 		`<meta name="twitter:image" content="https://meth.example/assets/share.png">`,
 		`<meta property="og:description" content="a wall">`,
 		`name="_csrf" value="tok"`, `<textarea name="msg" id="msg" aria-label="Message" autofocus="true"></textarea>`,
-		`<div class="corner_controls"><a href="/mod" class="corner_button admin_button">admin</a></div>`,
+		`<div class="corner_controls"><details class="theme_switcher">`,
+		`</details><a href="/mod" class="corner_button admin_button">admin</a></div>`,
+		`<nav class="mobile_navigation"><a href="/" class="board_jump_button mobile_post_button">Post</a><div class="mobile_board_jump">`,
 	} {
 		if !has(html, want) {
 			t.Errorf("missing %q", want)
 		}
 	}
-	for _, no := range []string{"<script", "board_tab", "theme_", "verboard", "/b/", "tag_banner", "post_tags", "/mod/move"} {
+	for _, no := range []string{"<script", "board_tab", "verboard", "/b/", "tag_banner", "post_tags", "/mod/move"} {
 		if has(html, no) {
 			t.Errorf("the page carries %q", no)
 		}
@@ -263,15 +266,6 @@ func TestComposer(t *testing.T) {
 	}
 }
 
-func TestLoginLogo(t *testing.T) {
-	html := render(t, ModLayout(ModPage{Site: config.DefaultSite(), Screen: "login", CSRF: "tok"}))
-	logo := `<a href="/" class="mod_logo_link"><img class="mod_logo" src="/assets/logo.gif" alt="meth"></a>`
-	form, logoAt, user := strings.Index(html, `<form action="/mod/authenticate"`), strings.Index(html, logo), strings.Index(html, `name="username"`)
-	if form < 0 || logoAt < form || user < logoAt {
-		t.Errorf("want the logo inside the form, above the username:\n%s", html)
-	}
-}
-
 func TestTags(t *testing.T) {
 	ShowTags = true
 	defer func() { ShowTags = false }()
@@ -416,5 +410,57 @@ func TestWebring(t *testing.T) {
 	page.Site.Webring = nil
 	if has(render(t, Layout(page)), "webring") {
 		t.Error("with no links there is no webring")
+	}
+}
+
+func TestThemeSwitcher(t *testing.T) {
+	html := render(t, Layout(Page{Theme: "cyb", Themes: ThemesFor("cyb"), ReturnTo: "/7?tag=go"}))
+	if !has(html, `href="/css/cyb.css"`) {
+		t.Error("the page links the chosen theme's stylesheet")
+	}
+	want := `<details class="theme_switcher"><summary class="theme_handle" aria-label="Themes" title="Themes"></summary><div class="theme_drawer"><div class="theme_drawer_title">Appearance</div>` +
+		`<a href="/style/angelic?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_angelic">Angelic</a>` +
+		`<a href="/style/blame?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_blame">BLAME!</a>` +
+		`<a href="/style/coffee?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_coffee">Coffee</a>` +
+		`<a href="/style/cyb?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_cyb current_theme">Cyb</a>` +
+		`<a href="/style/macos?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_macos">MacOS</a>` +
+		`<a href="/style/meth?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_meth">Meth</a>` +
+		`<a href="/style/ratwires?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_ratwires">Ratwires</a>` +
+		`</div></details>`
+	if !has(html, want) {
+		t.Errorf("switcher markup:\n%s", html)
+	}
+	if !has(html, `</details><a href="/mod" class="corner_button admin_button">admin</a></div>`) {
+		t.Error("on a regular screen the themes button sits left of admin")
+	}
+	if !has(render(t, Layout(Page{})), `href="/css/coffee.css"`) {
+		t.Error("a page with no theme falls back to coffee")
+	}
+	if !has(render(t, ModLayout(ModPage{Theme: "macos", Screen: "login"})), `href="/css/macos.css"`) {
+		t.Error("the mod layout follows the theme too")
+	}
+}
+
+func TestSiteTags(t *testing.T) {
+	tags := []SiteTag{{Name: "go", Href: TagHref("go"), Posts: 3}, {Name: "lo-fi", Href: TagHref("lo-fi"), Posts: 1}}
+	html := render(t, Layout(Page{SiteTags: tags}))
+	list := `<p class="tag_list"><a href="/?tag=go" class="tag_list_link">go<span class="tag_list_count"> (3)</span></a> <a href="/?tag=lo-fi" class="tag_list_link">lo-fi<span class="tag_list_count"> (1)</span></a></p>`
+	if !has(html, `<details id="tags_opener" open><summary id="tags_button">Tags</summary>`+list+`</details>`) {
+		t.Error("the banner lists every tag under About")
+	}
+	if !has(html, `<details class="mobile_tags"><summary class="board_jump_button mobile_tags_button">Tags</summary><div class="mobile_tags_drawer">`+list+`</div></details>`) {
+		t.Error("the mobile nav carries the Tags button")
+	}
+	if html := render(t, Layout(Page{})); has(html, "tags_opener") || has(html, "mobile_tags") {
+		t.Error("no tags, no Tags button")
+	}
+}
+
+func TestPagesAreStandardsMode(t *testing.T) {
+	if html := render(t, Layout(Page{})); !strings.HasPrefix(html, "<!doctype html>") {
+		t.Error("the board page must start with a doctype")
+	}
+	if html := render(t, ModLayout(ModPage{Screen: "login"})); !strings.HasPrefix(html, "<!doctype html>") {
+		t.Error("the mod pages must start with a doctype")
 	}
 }

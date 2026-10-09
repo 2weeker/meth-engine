@@ -197,11 +197,9 @@ func TestRetiredKeysRefused(t *testing.T) {
 		"boards: [{name: General}]": "one stream",
 		"boards: []":                "one stream",
 		"boards: [{name: A, captcha: true, mode: kareha}]": "one stream",
-		"theme: coffee":                 "coffee",
-		"theme: ratwires":               "coffee",
-		"overboard: {enabled: false}":   "overboard",
-		"rate_limit: {free_strikes: 3}": "captcha_post_limit",
-		"rate_limit: {}":                "captcha_post_limit",
+		"overboard: {enabled: false}":                      "overboard",
+		"rate_limit: {free_strikes: 3}":                    "captcha_post_limit",
+		"rate_limit: {}":                                   "captcha_post_limit",
 	} {
 		_, err := Load(write(t, body))
 		if err == nil || !strings.Contains(err.Error(), "no longer a setting") || !strings.Contains(err.Error(), names) {
@@ -441,5 +439,22 @@ func TestWebring(t *testing.T) {
 		if _, err := LoadSite(write(t, body)); err == nil || !strings.Contains(err.Error(), "webring[0]") {
 			t.Errorf("%q must be refused, naming the link: %v", body, err)
 		}
+	}
+}
+
+func TestTheme(t *testing.T) {
+	for body, want := range map[string]string{
+		"title: x":                "coffee",
+		"title: x\ntheme: cyb":    "cyb",
+		"title: x\ntheme: bm":     "meth",
+		"title: x\ntheme: coffee": "coffee",
+	} {
+		s, err := Load(write(t, body))
+		if err != nil || s.Site.Theme != want {
+			t.Errorf("%q: theme %q, %v; want %q", body, s.Site.Theme, err, want)
+		}
+	}
+	if _, err := Load(write(t, "title: x\ntheme: nope")); err == nil || !strings.Contains(err.Error(), "ratwires") {
+		t.Errorf("an unknown theme must be refused, naming the choices: %v", err)
 	}
 }

@@ -1,0 +1,15 @@
+package view
+
+import "net/url"
+
+templ ThemeSwitcher(themes []Theme, returnTo string) {
+	<details class="theme_switcher">
+		<summary class="theme_handle" aria-label="Themes" title="Themes"></summary>
+		<div class="theme_drawer">
+			<div class="theme_drawer_title">Appearance</div>
+			for _, t := range themes {
+				<a href={ templ.SafeURL("/style/" + t.Name + "?return_to=" + url.QueryEscape(returnTo)) } class={ "theme_choice", "theme_choice_" + t.Name, templ.KV("current_theme", t.Current) }>{ t.Label }</a>
+			}
+		</div>
+	</details>
+}

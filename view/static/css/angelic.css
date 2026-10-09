@@ -1,0 +1,62 @@
+@import "./ratwires.css";
+
+:root {
+
+	--theme-text-strong: #2a2114;
+	--theme-text: #40331f;
+	--theme-text-rgb: 64,51,31;
+
+	--theme-field: #fffdf7;
+	--theme-input-text: #40331f;
+
+	--theme-ground: #efebe1;
+	--theme-background-image: url(/assets/angelic.png);
+
+	--theme-accent: #e0a915;
+	--theme-accent-rgb: 224,169,21;
+
+	--theme-chrome: #f9f6ee;
+	--theme-chrome-rgb: 249,246,238;
+	--theme-bevel-light: #ffffff;
+	--theme-bevel-dark: #c2b596;
+	--theme-tab-face: #efe9da;
+	--theme-tab-light: #fffefa;
+
+	--theme-frame: #bcac87;
+	--theme-frame-rgb: 188,172,135;
+
+	--theme-banner-background-color: rgba(255,255,255,.45);
+	--theme-banner-border-color: rgba(188,172,135,.5);
+
+	--theme-post-background: rgba(255,255,255,.34);
+	--theme-post-border: rgba(188,172,135,.45);
+
+	--theme-heading-text: #6b5a2e;
+	--theme-link: #8a6a12;
+	--theme-link-hover: #c9932a;
+
+	--theme-greentext: #2f7d32;
+	--theme-bluetext: #1f6fa8;
+
+	--theme-digit-check: #b8860b;
+
+	--theme-font: Georgia, "Palatino Linotype", "Book Antiqua", serif;
+	--theme-mobile-font: Georgia, "Palatino Linotype", "Book Antiqua", serif;
+	--theme-field-font: Georgia, "Palatino Linotype", "Book Antiqua", serif;
+
+	color-scheme: light;
+}
+
+input, textarea, button {
+	font-family: var(--theme-font);
+}
+
+.post_content a {
+	text-shadow: none;
+}
+
+@media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
+	.post_content {
+		background-color: rgba(255,255,255,.5);
+	}
+}

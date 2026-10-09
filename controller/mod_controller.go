@@ -21,7 +21,7 @@ func (a *App) modPage(r *http.Request, screen string) view.ModPage {
 	if id == "" {
 		id = q.Get("post_id")
 	}
-	return view.ModPage{Site: a.Cfg.Site, Screen: screen, CSRF: handler.CSRFToken(r), ID: id, IP: q.Get("ip")}
+	return view.ModPage{Site: a.Cfg.Site, Theme: a.theme(r), Screen: screen, CSRF: handler.CSRFToken(r), ID: id, IP: q.Get("ip")}
 }
 
 func (a *App) guard(w http.ResponseWriter, r *http.Request) (string, error) {

@@ -101,6 +101,7 @@ func Build(a *controller.App, assets fs.FS) http.Handler {
 	mux.Handle("POST /ban/create", h(a.BanCreate))
 	mux.Handle("POST /ban/delete", h(a.BanDelete))
 
+	mux.Handle("GET /style/{name}", h(a.SetTheme))
 	mux.Handle("GET /id/{id}", h(a.History))
 	mux.Handle("GET /b/{board}", h(a.OldBoard))
 	mux.Handle("GET /b/{board}/{id}", h(a.OldBoard))

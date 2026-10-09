@@ -53,7 +53,7 @@ func TestRealStylesheets(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"ratwires.css", "coffee.css"} {
+	for _, name := range []string{"angelic.css", "blame.css", "coffee.css", "cyb.css", "macos.css", "meth.css", "ratwires.css"} {
 		s, ok := sheets[name]
 		if !ok {
 			t.Errorf("%s missing", name)
