@@ -437,8 +437,7 @@ code {
 }
 
 #tags_opener .tag_list {
-	margin: 4px auto 8px;
-	max-width: 640px;
+	margin: 4px 0 8px;
 	line-height: 1.8;
 }
 
@@ -480,8 +479,4 @@ code {
 .tag_list_count {
 	opacity: .7;
 	font-size: .85em;
-}
-
-.mobile_tags {
-	display: none;
 }

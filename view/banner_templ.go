@@ -180,7 +180,7 @@ func Banner(p Page) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(p.SiteTags) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<details id=\"tags_opener\" open><summary id=\"tags_button\">Tags</summary>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<details id=\"tags_opener\"><summary id=\"tags_button\">Tags</summary>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

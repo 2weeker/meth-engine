@@ -3,14 +3,6 @@ package view
 templ BoardPage(p Page) {
 	<nav class="mobile_navigation">
 		<a href="/" class="board_jump_button mobile_post_button">Post</a>
-		if len(p.SiteTags) > 0 {
-			<details class="mobile_tags">
-				<summary class="board_jump_button mobile_tags_button">Tags</summary>
-				<div class="mobile_tags_drawer">
-					@TagList(p.SiteTags)
-				</div>
-			</details>
-		}
 		<div class="mobile_board_jump">
 			<a href="#board_top" class="board_jump_button jump_up" title="Jump to top"></a>
 			<a href="#board_bottom" class="board_jump_button jump_down" title="Jump to bottom"></a>

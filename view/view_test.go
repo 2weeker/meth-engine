@@ -445,11 +445,11 @@ func TestSiteTags(t *testing.T) {
 	tags := []SiteTag{{Name: "go", Href: TagHref("go"), Posts: 3}, {Name: "lo-fi", Href: TagHref("lo-fi"), Posts: 1}}
 	html := render(t, Layout(Page{SiteTags: tags}))
 	list := `<p class="tag_list"><a href="/?tag=go" class="tag_list_link">go<span class="tag_list_count"> (3)</span></a> <a href="/?tag=lo-fi" class="tag_list_link">lo-fi<span class="tag_list_count"> (1)</span></a></p>`
-	if !has(html, `<details id="tags_opener" open><summary id="tags_button">Tags</summary>`+list+`</details>`) {
+	if !has(html, `<details id="tags_opener"><summary id="tags_button">Tags</summary>`+list+`</details>`) {
 		t.Error("the banner lists every tag under About")
 	}
-	if !has(html, `<details class="mobile_tags"><summary class="board_jump_button mobile_tags_button">Tags</summary><div class="mobile_tags_drawer">`+list+`</div></details>`) {
-		t.Error("the mobile nav carries the Tags button")
+	if has(html, "mobile_tags") {
+		t.Error("the mobile nav has no Tags button")
 	}
 	if html := render(t, Layout(Page{})); has(html, "tags_opener") || has(html, "mobile_tags") {
 		t.Error("no tags, no Tags button")
