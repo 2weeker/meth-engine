@@ -22,7 +22,7 @@ templ Banner(p Page) {
 			<p id="about">@templ.Raw(string(p.Site.AboutHTML))</p>
 		</details>
 		if len(p.SiteTags) > 0 {
-			<details id="tags_opener" open>
+			<details id="tags_opener">
 				<summary id="tags_button">Tags</summary>
 				@TagList(p.SiteTags)
 			</details>
