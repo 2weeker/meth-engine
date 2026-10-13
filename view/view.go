@@ -1,6 +1,7 @@
 package view
 
 import (
+	"cmp"
 	"embed"
 	"html/template"
 	"net/url"
@@ -32,10 +33,13 @@ type PostView struct {
 	IP         string
 	PosterID   string
 	IDLink     bool
+	TripLink   bool
 	ParentHref string
 	ReplyHref  string
 	Children   []*PostView
 	Tags       []TagLink
+	Name       string
+	Tripcode   string
 }
 
 func (v *PostView) IDString() string { return strconv.FormatInt(v.ID, 10) }
@@ -57,6 +61,7 @@ type Composer struct {
 	Message string
 	Sage    bool
 	Tags    string
+	Name    string
 	Error   string
 }
 
@@ -100,11 +105,16 @@ type Page struct {
 	Placeholder string
 	TagFilter   string
 	TagsHint    string
+	Tripcodes   bool
+	Flat        bool
+	Palette     string
+	Custom      bool
 }
 
 type ModPage struct {
 	Site          config.Site
 	Theme         string
+	Palette       string
 	Screen        string
 	CSRF          string
 	ID, IP        string
@@ -147,9 +157,9 @@ func tree(posts []model.Post, selected *int64, mod, away bool, current string) [
 		p := posts[i]
 		id := strconv.FormatInt(p.ID, 10)
 		v := &PostView{ID: p.ID, ParentID: p.ParentID, Message: template.HTML(formatter.Format(p.Message, links)),
-			Sage: p.Sage && p.ParentID != nil, Time: FormatTime(p.CreatedAt), Mod: mod, IP: p.IPAddress, PosterID: p.PosterID, IDLink: true,
+			Sage: p.Sage && p.ParentID != nil, Time: FormatTime(p.CreatedAt), Mod: mod, IP: p.IPAddress, PosterID: p.PosterID, IDLink: true, TripLink: true,
 			Selected:  selected != nil && *selected == p.ID,
-			ReplyHref: "/" + id + "#reply-" + id}
+			ReplyHref: "/" + id + "#reply-" + id, Name: p.Name, Tripcode: p.Tripcode}
 		if n, _ := dubs.Check(p.ID); n > 1 {
 			v.Dubs = "(x" + strconv.Itoa(n) + ")"
 		}
@@ -181,17 +191,35 @@ func tree(posts []model.Post, selected *int64, mod, away bool, current string) [
 	return roots
 }
 
+func TripHref(code string) string {
+	return "/trip/" + url.PathEscape(code)
+}
+
 func History(posts []model.Post, mod bool) []*PostView {
 	views := make([]*PostView, 0, len(posts))
 	for _, p := range posts {
 		v := tree([]model.Post{p}, nil, mod, true, "")[0]
-		v.IDLink = false
+		v.IDLink, v.TripLink = false, false
 		if p.ParentID != nil {
 			v.ParentHref = "/#post-" + strconv.FormatInt(*p.ParentID, 10)
 		}
 		views = append(views, v)
 	}
 	return views
+}
+
+func OldestFirst(posts []*PostView) []*PostView {
+	out := slices.Clone(posts)
+	slices.SortFunc(out, func(a, b *PostView) int { return cmp.Compare(a.ID, b.ID) })
+	return out
+}
+
+func Descendants(v *PostView) int {
+	n := len(v.Children)
+	for _, c := range v.Children {
+		n += Descendants(c)
+	}
+	return n
 }
 
 func TagHref(tag string) string {

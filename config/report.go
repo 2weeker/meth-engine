@@ -34,6 +34,11 @@ func (c Config) Report(w io.Writer) {
 	} else {
 		fmt.Fprintln(w, "  tags: off")
 	}
+	if c.Tripcodes() {
+		fmt.Fprintln(w, "  tripcodes: on")
+	} else {
+		fmt.Fprintln(w, "  tripcodes: off")
+	}
 	fmt.Fprintf(w, "  posts kept: %d, then the oldest is purged\n", c.Site.PostCap())
 }
 

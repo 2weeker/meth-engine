@@ -15,6 +15,7 @@ import (
 	"meth-enginev2/handler"
 	"meth-enginev2/helper/auth"
 	"meth-enginev2/helper/captcha/captchav1"
+	"meth-enginev2/helper/palette"
 )
 
 func captchaApp(a *App) http.Handler {
@@ -277,5 +278,247 @@ func TestPlaceholder(t *testing.T) {
 	}
 	if got := tagsHint(config.TagLimits{Max: 1, Length: 24}); got != "1 tag" {
 		t.Errorf("tagsHint(1) = %q", got)
+	}
+}
+
+func TestRefusedPostKeepsNameNotSecret(t *testing.T) {
+	on := true
+	a := &App{}
+	a.Cfg.Site.Tripcodes = &on
+	loc, u := postForm(t, a, url.Values{"msg": {"hello"}, "name": {"Anon#hunter2"}, HoneypotField: {"spam"}})
+	if got := u.Query().Get("name"); got != "Anon" {
+		t.Errorf("the form gets back name %q, want %q (redirect %s)", got, "Anon", loc)
+	}
+	if strings.Contains(loc, "hunter2") {
+		t.Errorf("the redirect carries the secret: %s", loc)
+	}
+}
+
+func postForm(t *testing.T, a *App, form url.Values) (string, *url.URL) {
+	t.Helper()
+	r := httptest.NewRequest("POST", "/post/create", strings.NewReader(form.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+	if err := a.CreatePost(w, r); err != nil {
+		t.Fatal(err)
+	}
+	loc := w.Result().Header.Get("Location")
+	u, err := url.Parse(loc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return loc, u
+}
+
+func TestNameNeedsTripcode(t *testing.T) {
+	on := true
+	a := &App{}
+	a.Cfg.Site.Tripcodes = &on
+	for _, name := range []string{"Anon", "Anon#"} {
+		_, u := postForm(t, a, url.Values{"msg": {"hello"}, "name": {name}})
+		if q := u.Query(); q.Get("error") != "tripcode" || q.Get("msg") != "hello" || q.Get("name") != "Anon" {
+			t.Errorf("name %q: redirected to %s, want a tripcode error with the draft and name", name, u)
+		}
+	}
+
+	off := &App{}
+	_, u := postForm(t, off, url.Values{"msg": {"hello"}, "name": {"Anon#hunter2"}, HoneypotField: {"spam"}})
+	if u.Query().Has("name") {
+		t.Errorf("with tripcodes off the name field is still read: %s", u)
+	}
+}
+
+func TestNameCookie(t *testing.T) {
+	a := &App{}
+	for _, field := range []string{"Anon#tea", "名無し#ﾃｽﾄ", "a b#c,d;e\"f"} {
+		w := httptest.NewRecorder()
+		a.rememberName(w, field)
+		r := httptest.NewRequest("GET", "/", nil)
+		for _, c := range w.Result().Cookies() {
+			if c.Name != nameCookie || !c.HttpOnly || c.SameSite != http.SameSiteLaxMode {
+				t.Errorf("cookie %+v is not an HttpOnly, Lax %s cookie", c, nameCookie)
+			}
+			r.AddCookie(c)
+		}
+		if got := rememberedName(r); got != field {
+			t.Errorf("remembered %q, want %q", got, field)
+		}
+	}
+	w := httptest.NewRecorder()
+	a.rememberName(w, strings.Repeat("n", 200)+"#x")
+	r := httptest.NewRequest("GET", "/", nil)
+	for _, c := range w.Result().Cookies() {
+		r.AddCookie(c)
+	}
+	if got := rememberedName(r); len([]rune(got)) != maxNameField {
+		t.Errorf("an oversized field is kept to %d runes, not %d", maxNameField, len([]rune(got)))
+	}
+
+	r = httptest.NewRequest("GET", "/", nil)
+	r.AddCookie(&http.Cookie{Name: nameCookie, Value: "not base64!"})
+	if got := rememberedName(r); got != "" {
+		t.Errorf("a bad cookie remembers %q", got)
+	}
+	if rememberedName(httptest.NewRequest("GET", "/", nil)) != "" {
+		t.Error("no cookie remembers something")
+	}
+
+	w = httptest.NewRecorder()
+	forgetName(w)
+	if cs := w.Result().Cookies(); len(cs) != 1 || cs[0].Name != nameCookie || cs[0].MaxAge != -1 {
+		t.Errorf("forgetting should expire the cookie: %+v", cs)
+	}
+
+	for _, c := range []struct {
+		remembered, typed string
+		kept              bool
+		want              string
+	}{
+		{"Anon#tea", "Anon", true, "Anon#tea"},
+		{"Anon#tea", "Anon", false, "Anon"},
+		{"Anon#tea", "Other", true, "Other"},
+		{"Anon#tea", "", true, ""},
+		{"", "Anon", true, "Anon"},
+	} {
+		if got := composerName(c.remembered, c.typed, c.kept); got != c.want {
+			t.Errorf("composerName(%q, %q, %v) = %q, want %q", c.remembered, c.typed, c.kept, got, c.want)
+		}
+	}
+}
+
+func TestPalette(t *testing.T) {
+	a := &App{}
+	a.Cfg.Site.Theme = "coffee"
+	a.Palettes = map[string]palette.Palette{"coffee": {Colors: map[string]string{"accent": "#d99a5b", "text": "#f2dfc6"}, Tile: "coffee"}}
+	mux := http.NewServeMux()
+	mux.Handle("GET /theme/custom", handler.HTTP(a.PaletteEditor))
+	mux.Handle("POST /theme/custom", handler.HTTP(a.SetPalette))
+	mux.Handle("POST /theme/reset", handler.HTTP(a.ResetPalette))
+	post := func(path string, form url.Values, cookies ...*http.Cookie) *http.Response {
+		r := httptest.NewRequest("POST", path, strings.NewReader(form.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		for _, c := range cookies {
+			r.AddCookie(c)
+		}
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, r)
+		return w.Result()
+	}
+
+	res := post("/theme/custom", url.Values{"accent": {"#112233"}, "tile": {"dark"}, "image": {"https://pics.example/t.png"}, "fit": {"cover"}, "return_to": {"/7?tag=go"}})
+	var set *http.Cookie
+	for _, c := range res.Cookies() {
+		if c.Name == paletteCookie {
+			set = c
+		}
+	}
+	if set == nil || !set.HttpOnly || set.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("no HttpOnly Lax palette cookie: %+v", res.Cookies())
+	}
+	if loc := res.Header.Get("Location"); loc != "/7?tag=go" {
+		t.Errorf("after applying, sent to %q", loc)
+	}
+	r := httptest.NewRequest("GET", "/", nil)
+	r.AddCookie(set)
+	if css := a.customPalette(r).CSS(); css != `:root{--theme-accent:#112233;--theme-accent-rgb:17,34,51;--theme-background-image:url("https://pics.example/t.png");}body{background-size:cover;background-repeat:no-repeat;background-position:center;background-attachment:fixed;}` {
+		t.Errorf("cookie gives %s", css)
+	}
+	if p := a.page(r); p.Palette == "" || !p.Custom {
+		t.Error("the page does not carry the custom palette")
+	}
+	if p := a.page(httptest.NewRequest("GET", "/", nil)); p.Palette != "" || p.Custom {
+		t.Error("without a cookie the page carries a palette")
+	}
+
+	res = post("/theme/custom", url.Values{"accent": {"red; } body { display:none"}, "return_to": {"/7"}})
+	if len(res.Cookies()) != 0 || res.Header.Get("Location") != "/theme/custom?error=1&return_to=%2F7" {
+		t.Errorf("bad colours: cookies %v, sent to %q", res.Cookies(), res.Header.Get("Location"))
+	}
+	res = post("/theme/custom", url.Values{"return_to": {"https://evil.example/"}})
+	if res.Header.Get("Location") != "/" {
+		t.Errorf("an off-site return_to is followed: %q", res.Header.Get("Location"))
+	}
+
+	res = post("/theme/reset", url.Values{"return_to": {"/id/abcdefgh"}}, set)
+	if cs := res.Cookies(); len(cs) != 1 || cs[0].Name != paletteCookie || cs[0].MaxAge != -1 || res.Header.Get("Location") != "/id/abcdefgh" {
+		t.Errorf("reset: cookies %+v, sent to %q", cs, res.Header.Get("Location"))
+	}
+
+	r = httptest.NewRequest("GET", "/theme/custom?return_to=/7", nil)
+	e := a.editor(r)
+	if e.Active || e.ReturnTo != "/7" || e.Tile != "coffee" || len(e.Fields) != len(palette.Fields) {
+		t.Errorf("editor from the theme alone: %+v", e)
+	}
+	for _, f := range e.Fields {
+		switch f.Key {
+		case "accent":
+			if f.Value != "#d99a5b" {
+				t.Errorf("accent starts from the theme's: %s", f.Value)
+			}
+		case "greentext":
+			if f.Value != "#000000" {
+				t.Errorf("a colour the theme does not name falls back: %s", f.Value)
+			}
+		}
+	}
+	r.AddCookie(set)
+	e = a.editor(r)
+	if !e.Active || e.Tile != "dark" || e.Image != "https://pics.example/t.png" || e.Fit != "cover" || e.Fields[8].Key != "accent" || e.Fields[8].Value != "#112233" || e.Fields[0].Value != "#f2dfc6" {
+		t.Errorf("editor with a palette set: %+v", e)
+	}
+}
+
+func TestRefusedPostKeepsRememberedSecretOnlyIfUsed(t *testing.T) {
+	on := true
+	a := &App{}
+	a.Cfg.Site.Tripcodes = &on
+	w := httptest.NewRecorder()
+	a.rememberName(w, "Anon#old")
+	cookie := w.Result().Cookies()[0]
+	for _, c := range []struct {
+		field string
+		kept  bool
+	}{{"Anon#old", true}, {"Anon#new", false}, {"Anon", false}} {
+		form := url.Values{"msg": {"hello"}, "name": {c.field}, HoneypotField: {"spam"}}
+		r := httptest.NewRequest("POST", "/post/create", strings.NewReader(form.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r.AddCookie(cookie)
+		w := httptest.NewRecorder()
+		if err := a.CreatePost(w, r); err != nil {
+			t.Fatal(err)
+		}
+		u, _ := url.Parse(w.Result().Header.Get("Location"))
+		if got := u.Query().Get("kept") == "1"; got != c.kept || u.Query().Get("name") != "Anon" || strings.Contains(u.String(), "old") || strings.Contains(u.String(), "new") {
+			t.Errorf("%q refused: redirect %s, want kept=%v and no secret", c.field, u, c.kept)
+		}
+	}
+}
+
+func TestPaletteStoresOnlyChanges(t *testing.T) {
+	a := &App{}
+	a.Cfg.Site.Theme = "coffee"
+	a.Palettes = map[string]palette.Palette{"coffee": {Colors: map[string]string{"accent": "#d99a5b", "text": "#f2dfc6"}, Tile: "coffee"}}
+	post := func(form url.Values) *http.Response {
+		r := httptest.NewRequest("POST", "/theme/custom", strings.NewReader(form.Encode()))
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		w := httptest.NewRecorder()
+		if err := a.SetPalette(w, r); err != nil {
+			t.Fatal(err)
+		}
+		return w.Result()
+	}
+	res := post(url.Values{"accent": {"#d99a5b"}, "text": {"#f2dfc6"}, "tile": {"coffee"}})
+	if cs := res.Cookies(); len(cs) != 1 || cs[0].MaxAge != -1 {
+		t.Errorf("applying the theme's own colours should set no palette: %+v", cs)
+	}
+	res = post(url.Values{"accent": {"#112233"}, "text": {"#f2dfc6"}, "tile": {"coffee"}})
+	var got palette.Palette
+	for _, c := range res.Cookies() {
+		if c.Name == paletteCookie {
+			got = palette.Decode(c.Value)
+		}
+	}
+	if len(got.Colors) != 1 || got.Colors["accent"] != "#112233" || got.Tile != "" {
+		t.Errorf("only the changed colour should be kept: %+v", got)
 	}
 }

@@ -62,7 +62,8 @@
 }
 
 .theme_switcher[open] > .theme_handle,
-.corner_button.current_overboard {
+.corner_button.current_overboard,
+.corner_button.flatten_on {
 	border-style: inset;
 	border-radius: 0;
 	color: var(--theme-text-strong);
@@ -118,6 +119,7 @@
 .theme_choice_meth::before { background-color: #00ebff; }
 .theme_choice_blame::before { background-color: #7d959c; }
 .theme_choice_coffee::before { background-color: #d99a5b; }
+.theme_choice_custom::before { background-color: var(--theme-accent); }
 .theme_choice.current_theme { border-style: inset; border-color: var(--theme-accent); }
 .theme_choice.current_theme::after { content: "active"; margin-left: auto; font-size: 11px; }
 .theme_choice:active { border-style: inset; }
@@ -371,7 +373,7 @@
 .post:not([open]) > .post_header::before { content: "\25B8"; }
 .post_header::before { display: none; }
 .post_author { font-weight: bold; overflow-wrap: anywhere; }
-.post_tripcode { color: var(--theme-accent); font-family: monospace; overflow-wrap: anywhere; }
+.post_tripcode { overflow-wrap: anywhere; }
 
 /* The poster ID. Monospace and dimmer than a name: it is a code that tells two
    posters apart, not something anybody chose to be called. */
@@ -404,6 +406,21 @@ a.post_poster_id:hover,
 	text-decoration: underline;
 }
 
+a.post_tripcode,
+.post_content a.post_tripcode {
+	color: var(--theme-text);
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: none;
+	text-shadow: none;
+}
+
+a.post_tripcode:hover,
+.post_content a.post_tripcode:hover {
+	color: var(--theme-text);
+	text-decoration: underline;
+}
+
 /* A touch smaller under the message on handheld, where it is not competing
    with a header row for attention and the screen is narrow. */
 .post_signature .post_poster_id {
@@ -427,7 +444,6 @@ a.post_poster_id:hover,
 }
 .sage_option { display: inline-flex; align-items: center; gap: 5px; padding: 4px 0; }
 .sage_option input { accent-color: var(--theme-accent); }
-.form .post_name_input,
 .form .thread_title_input {
 	box-sizing: border-box;
 	width: 100%;
@@ -438,7 +454,7 @@ a.post_poster_id:hover,
 }
 
 @media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
-	.form .post_name_input, .form .thread_title_input { font-size: 16px; }
+	.form .thread_title_input { font-size: 16px; }
 	.sage_option { flex-basis: 100%; }
 	/* Extra fields scroll inside the composer, keeping tabs and its toggle visible. */
 	.posting_deck > .form > .form_contents {

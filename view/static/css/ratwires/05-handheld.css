@@ -258,6 +258,11 @@
 		font-size: .82em;
 	}
 
+	.backlinks_label {
+		margin-right: .35em;
+		color: var(--theme-text);
+	}
+
 	.backlink_parent {
 		display: inline;
 	}

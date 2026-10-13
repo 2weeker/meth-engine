@@ -77,7 +77,8 @@
 		text-decoration: none;
 	}
 
-	.corner_controls > .corner_button.current_overboard {
+	.corner_controls > .corner_button.current_overboard,
+	.corner_controls > .corner_button.flatten_on {
 		color: var(--theme-text-strong);
 	}
 
@@ -157,6 +158,7 @@
 .theme_switcher > .theme_handle:active,
 .corner_controls > .corner_button,
 .corner_controls > .corner_button.current_overboard,
+.corner_controls > .corner_button.flatten_on,
 .corner_controls > .corner_button:active {
 	border: 1px solid #000;
 	border-radius: 2px;
@@ -165,6 +167,7 @@
 /* On the overboard its button is outlined in the theme's accent, as the
    Overboard tab was when it sat among the board tabs. After the rule above,
    at the same specificity, so it wins on order. */
-.corner_controls > .corner_button.current_overboard {
+.corner_controls > .corner_button.current_overboard,
+.corner_controls > .corner_button.flatten_on {
 	border-color: var(--theme-accent);
 }

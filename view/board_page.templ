@@ -1,5 +1,7 @@
 package view
 
+import "meth-enginev2/config"
+
 templ BoardPage(p Page) {
 	<nav class="mobile_navigation">
 		<a href="/" class="board_jump_button mobile_post_button">Post</a>
@@ -19,12 +21,14 @@ templ BoardPage(p Page) {
 		if p.History != "" {
 			<div class="post root_post selected_post overboard history" id="post-root">
 				<span id="board_top" class="board_anchor"></span>
-				if len(p.Threads) > 0 {
+				if p.Flat {
+					@PostTree(p)
+				} else if len(p.Threads) > 0 {
 					for _, t := range p.Threads {
 						@Post(t)
 					}
 				} else {
-					<p class="overboard_empty">No posts by this ID.</p>
+					<p class="overboard_empty">No posts by { p.History }.</p>
 				}
 				<span id="board_bottom" class="board_anchor"></span>
 			</div>
@@ -43,21 +47,31 @@ templ BoardPage(p Page) {
 						</div>
 					}
 				</div>
-				for _, t := range p.Threads {
-					@Post(t)
+				if p.Flat {
+					@PostTree(p)
+				} else {
+					for _, t := range p.Threads {
+						@Post(t)
+					}
 				}
 				<span id="board_bottom" class="board_anchor"></span>
 			</details>
 		}
 		<div class="post_header collapsed_board_header">{ p.Stats }</div>
-		if len(p.Site.Webring) > 0 {
-			<nav class="webring" aria-label="Webring">
-				<span class="webring_title">Webring:</span>
-				for _, l := range p.Site.Webring {
-					{ " " }
-					<a href={ l.URL } class="webring_link">{ l.Label }</a>
-				}
-			</nav>
+		if !p.Flat {
+			@Webring(p.Site.Webring)
 		}
 	</div>
+}
+
+templ Webring(links []config.Link) {
+	if len(links) > 0 {
+		<nav class="webring" aria-label="Webring">
+			<span class="webring_title">Webring:</span>
+			for _, l := range links {
+				{ " " }
+				<a href={ l.URL } class="webring_link">{ l.Label }</a>
+			}
+		</nav>
+	}
 }

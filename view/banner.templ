@@ -19,7 +19,9 @@ templ Banner(p Page) {
 		</h4>
 		<details id="about_opener">
 			<summary id="about_button">About</summary>
-			<p id="about">@templ.Raw(string(p.Site.AboutHTML))</p>
+			<p id="about">
+				@templ.Raw(string(p.Site.AboutHTML))
+			</p>
 		</details>
 		if len(p.SiteTags) > 0 {
 			<details id="tags_opener">

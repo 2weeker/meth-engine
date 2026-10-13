@@ -1,6 +1,7 @@
 package view
 
 import (
+	"net/url"
 	"strconv"
 
 	"meth-enginev2/config"
@@ -12,6 +13,7 @@ templ Layout(p Page) {
 		<head>
 			<meta charset="utf-8"/>
 			<link rel="stylesheet" type="text/css" href={ Stylesheet(p.Theme) }/>
+			@templ.Raw(customStyle(p.Palette))
 			<link rel="icon" type="image/gif" href="/favicon.gif"/>
 			<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48"/>
 			<link rel="icon" type="image/png" href="/favicon.png" sizes="32x32"/>
@@ -37,13 +39,22 @@ templ Layout(p Page) {
 			<meta name="twitter:image" content={ p.BaseURL + p.Site.ShareImagePath() }/>
 			<meta name="twitter:image:alt" content={ p.Site.Title + " logo" }/>
 		</head>
-		<body>
+		<body class={ templ.KV("flat_view", p.Flat) }>
 			@Banner(p)
 			@BoardPage(p)
 			<div class="corner_controls">
-				@ThemeSwitcher(p.Themes, p.ReturnTo)
+				@FlattenButton(p.Flat, p.ReturnTo)
+				@ThemeSwitcher(p.Themes, p.ReturnTo, p.Custom)
 				<a href="/mod" class="corner_button admin_button">admin</a>
 			</div>
 		</body>
 	</html>
+}
+
+templ FlattenButton(flat bool, returnTo string) {
+	if flat {
+		<a href={ templ.SafeURL("/view/nested?return_to=" + url.QueryEscape(returnTo)) } class="corner_button flatten_button flatten_on" title="Nest the posts again">flatten</a>
+	} else {
+		<a href={ templ.SafeURL("/view/flat?return_to=" + url.QueryEscape(returnTo)) } class="corner_button flatten_button" title="Lay the posts out as a tree">flatten</a>
+	}
 }

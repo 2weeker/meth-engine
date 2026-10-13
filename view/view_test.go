@@ -64,7 +64,7 @@ func TestLayoutRenders(t *testing.T) {
 		`<meta name="twitter:image" content="https://meth.example/assets/share.png">`,
 		`<meta property="og:description" content="a wall">`,
 		`name="_csrf" value="tok"`, `<textarea name="msg" id="msg" aria-label="Message" autofocus="true"></textarea>`,
-		`<div class="corner_controls"><details class="theme_switcher">`,
+		`<div class="corner_controls"><a href="/view/flat?return_to=%2F" class="corner_button flatten_button" title="Lay the posts out as a tree">flatten</a><details class="theme_switcher">`,
 		`</details><a href="/mod" class="corner_button admin_button">admin</a></div>`,
 		`<nav class="mobile_navigation"><a href="/" class="board_jump_button mobile_post_button">Post</a><div class="mobile_board_jump">`,
 	} {
@@ -181,13 +181,14 @@ func TestSageIsForReplies(t *testing.T) {
 		{ID: 10, Message: "a thread saged before the change", Sage: true, CreatedAt: time.Now()},
 		{ID: 11, ParentID: &tid, Message: "a saged reply", Sage: true, CreatedAt: time.Now()},
 	}
-	page := Page{Threads: Tree(posts, nil, false), CSRF: "tok"}
+	page := Page{Threads: Tree(posts, nil, false), CSRF: "tok", Tripcodes: true}
 	html := render(t, Layout(page))
 	if has(html, `name="sage"`) {
 		t.Error("the new-thread form must not offer sage")
 	}
-	if has(html, `Message:`) || !has(html, `<br><textarea name="msg" id="msg" aria-label="Message"`) {
-		t.Error("the message box has no visible label, and follows the line break")
+	if has(html, `Message:`) || !has(html, `<br><input type="text" name="name" id="name" class="post_name_input"`) ||
+		!has(html, `spellcheck="false"><textarea name="msg" id="msg" aria-label="Message"`) {
+		t.Error("the message box has no visible label, and follows the line break and the name field")
 	}
 	if has(html, `id="post-10" open="true"><summary class="post_header"><span class="post_sage">`) {
 		t.Error("a thread must not show a sage label")
@@ -211,7 +212,7 @@ func TestHistoryPage(t *testing.T) {
 		{ID: 9, Message: "a thread", PosterID: "HR3oJ8FX", CreatedAt: time.Now()},
 		{ID: 5, ParentID: &pid, Message: "a reply, see >>4", PosterID: "HR3oJ8FX", CreatedAt: time.Now()},
 	}
-	page := Page{CSRF: "tok", History: "HR3oJ8FX", Threads: History(posts, false), Stats: "2 posts by ID:HR3oJ8FX"}
+	page := Page{CSRF: "tok", History: "ID:HR3oJ8FX", Threads: History(posts, false), Stats: "2 posts by ID:HR3oJ8FX"}
 	html := render(t, Layout(page))
 	for _, want := range []string{
 		`<div class="post root_post selected_post overboard history" id="post-root">`,
@@ -238,8 +239,26 @@ func TestHistoryPage(t *testing.T) {
 		t.Error("two posts, flat")
 	}
 	page.Threads = nil
-	if !has(render(t, Layout(page)), `<p class="overboard_empty">No posts by this ID.</p>`) {
+	if !has(render(t, Layout(page)), `<p class="overboard_empty">No posts by ID:HR3oJ8FX.</p>`) {
 		t.Error("an ID with no posts says so")
+	}
+
+	page.Threads, page.Flat = History(posts, false), true
+	html = render(t, Layout(page))
+	for _, want := range []string{
+		`<div class="post root_post selected_post overboard history" id="post-root"><span id="board_top" class="board_anchor"></span><details class="post_tree" open><summary class="post_header tree_root"><a href="/">ID:HR3oJ8FX</a></summary><div class="tree_children"><div class="tree_node"><details class="post" id="post-9"`,
+		`<span class="post_poster_id">ID:HR3oJ8FX</span>`,
+	} {
+		if !has(html, want) {
+			t.Errorf("flat history page lacks %s", want)
+		}
+	}
+	if strings.Count(html, `<div class="tree_node">`) != 2 || has(html, `href="/id/`) {
+		t.Error("two posts as tree nodes, without links back to this page")
+	}
+	page.Threads = nil
+	if !has(render(t, Layout(page)), `tree_root"><a href="/">ID:HR3oJ8FX</a></summary><p class="overboard_empty">No posts by ID:HR3oJ8FX.</p></details>`) {
+		t.Error("a flat history page with no posts says so inside the tree")
 	}
 }
 
@@ -407,6 +426,12 @@ func TestWebring(t *testing.T) {
 	if !has(html, want) {
 		t.Errorf("page lacks the webring:\n%s\n%s", want, html)
 	}
+	page.Flat = true
+	html = render(t, Layout(page))
+	if strings.Count(html, `class="webring"`) != 1 || !has(html, `<div class="tree_summary">1 post made per hour with 1 identity</div><nav class="webring"`) {
+		t.Errorf("the tree should carry the webring once, under its tally:\n%s", html)
+	}
+	page.Flat = false
 	page.Site.Webring = nil
 	if has(render(t, Layout(page)), "webring") {
 		t.Error("with no links there is no webring")
@@ -426,6 +451,7 @@ func TestThemeSwitcher(t *testing.T) {
 		`<a href="/style/macos?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_macos">MacOS</a>` +
 		`<a href="/style/meth?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_meth">Meth</a>` +
 		`<a href="/style/ratwires?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_ratwires">Ratwires</a>` +
+		`<a href="/theme/custom?return_to=%2F7%3Ftag%3Dgo" class="theme_choice theme_choice_custom">Custom…</a>` +
 		`</div></details>`
 	if !has(html, want) {
 		t.Errorf("switcher markup:\n%s", html)
@@ -462,5 +488,143 @@ func TestPagesAreStandardsMode(t *testing.T) {
 	}
 	if html := render(t, ModLayout(ModPage{Screen: "login"})); !strings.HasPrefix(html, "<!doctype html>") {
 		t.Error("the mod pages must start with a doctype")
+	}
+}
+
+func TestTreeBoard(t *testing.T) {
+	p := func(n int64) *int64 { return &n }
+	now := time.Now()
+	posts := []model.Post{
+		{ID: 20, Message: "second thread", CreatedAt: now},
+		{ID: 10, Message: "first thread", CreatedAt: now},
+		{ID: 13, ParentID: p(11), Message: "deep", CreatedAt: now},
+		{ID: 12, ParentID: p(10), Message: "direct", CreatedAt: now},
+		{ID: 11, ParentID: p(10), Message: "reply", CreatedAt: now},
+	}
+	threads := Tree(posts, nil, false)
+	if n := Descendants(threads[1]); n != 3 {
+		t.Errorf("thread 10 hides %d posts when folded, want 3", n)
+	}
+
+	page := Page{Threads: threads, CSRF: "tok", ReturnTo: "/7", Flat: true, Stats: "5 posts made per hour with 1 identity"}
+	page.Site.Title = "meth"
+	html := render(t, Layout(page))
+	for _, want := range []string{
+		`<body class="flat_view">`,
+		`<details class="post_tree" open><summary class="post_header tree_root"><a href="/">Post</a></summary><div class="tree_children">`,
+		`</details><div class="tree_summary">5 posts made per hour with 1 identity</div>`,
+		`<span class="tree_folded" title="Replies hidden while this post is folded">+3</span>`,
+		`<div class="backlinks"><span class="backlinks_label">Replies:</span><a href="#post-11" class="backlink backlink_reply">&gt;&gt;11</a><a href="#post-12" class="backlink backlink_reply">&gt;&gt;12</a>`,
+		`href="/view/nested?return_to=%2F7" class="corner_button flatten_button flatten_on"`,
+	} {
+		if !has(html, want) {
+			t.Errorf("tree board: missing %q", want)
+		}
+	}
+	order := regexp.MustCompile(`id="post-(\d+)"|</details><div class="tree_children">`).FindAllStringSubmatch(html, -1)
+	var got []string
+	for _, m := range order {
+		if m[1] == "" {
+			got = append(got, "{")
+		} else {
+			got = append(got, m[1])
+		}
+	}
+	if want := []string{"20", "10", "{", "11", "{", "13", "12"}; !slices.Equal(got, want) {
+		t.Errorf("tree order %v, want %v", got, want)
+	}
+
+	nested := render(t, Layout(Page{Threads: Tree(posts, nil, false), CSRF: "tok", ReturnTo: "/"}))
+	for _, gone := range []string{"flat_view", "post_tree", "tree_folded"} {
+		if strings.Contains(nested, gone) {
+			t.Errorf("the nested board carries %s", gone)
+		}
+	}
+	if !has(nested, `href="/view/flat?return_to=%2F" class="corner_button flatten_button"`) {
+		t.Error("the nested board has no flatten button")
+	}
+	body := nested[strings.Index(nested, `id="post-10"`):strings.Index(nested, `id="post-12"`)]
+	if strings.Contains(body, "</details>") {
+		t.Error("the nested board no longer nests post 12 in post 10")
+	}
+}
+
+func TestTripcode(t *testing.T) {
+	now := time.Now()
+	posts := []model.Post{
+		{ID: 1, Message: "named", PosterID: "abcdEFGH", Name: "Anon", Tripcode: "WokonZwxw2", CreatedAt: now},
+		{ID: 2, Message: "trip only", PosterID: "abcdEFGH", Tripcode: "WokonZwxw2", CreatedAt: now},
+		{ID: 3, Message: "plain", PosterID: "ijklMNOP", CreatedAt: now},
+	}
+	html := render(t, Layout(Page{Threads: Tree(posts, nil, false), CSRF: "tok"}))
+	named := `<span class="post_author">Anon</span><a href="/trip/WokonZwxw2" class="post_tripcode" title="Every post with this tripcode">◆WokonZwxw2</a>`
+	if strings.Count(norm(html), norm(named)) != 2 {
+		t.Error("a named post should show its name and tripcode link in the header and the signature")
+	}
+	if !has(html, `Reply</a><a href="/trip/WokonZwxw2" class="post_tripcode"`) {
+		t.Error("a tripcode without a name should stand alone")
+	}
+	if got := TripHref("Wok/nZ.xw2"); got != "/trip/Wok%2FnZ.xw2" {
+		t.Errorf("a tripcode's '/' must travel escaped: %s", got)
+	}
+	history := render(t, Layout(Page{CSRF: "tok", History: "◆WokonZwxw2", Threads: History(posts[:1], false)}))
+	if has(history, `href="/trip/`) || !has(history, `<span class="post_tripcode" title="Tripcode">◆WokonZwxw2</span>`) {
+		t.Error("on its own history page a tripcode is plain text")
+	}
+	if strings.Contains(html, `/id/abcdEFGH`) {
+		t.Error("a post with a tripcode still shows its poster ID")
+	}
+	if !has(html, `<a href="/id/ijklMNOP" class="post_poster_id" title="Every post by this ID">ID:ijklMNOP</a>`) {
+		t.Error("a post without a tripcode lost its poster ID")
+	}
+	page := Page{CSRF: "tok", Tripcodes: true, Composer: Composer{Open: true, Name: "Anon"}}
+	if !has(render(t, Layout(page)), `placeholder="Name#tripcode (optional)" value="Anon"`) {
+		t.Error("a refused post's name does not come back to the form")
+	}
+	page.Tripcodes = false
+	if has(render(t, Layout(page)), `name="name"`) {
+		t.Error("with tripcodes off the form still asks for a name")
+	}
+}
+
+func TestCustomPalette(t *testing.T) {
+	css := ":root{--theme-accent:#112233;--theme-accent-rgb:17,34,51;}"
+	page := Page{CSRF: "tok", Theme: "coffee", Themes: ThemesFor("coffee"), ReturnTo: "/7", Palette: css, Custom: true}
+	html := render(t, Layout(page))
+	if !has(html, `href="/css/coffee.css"><style>`+css+`</style><link rel="icon"`) {
+		t.Error("the custom palette is not applied right after the theme's stylesheet")
+	}
+	if !has(html, `<a href="/theme/custom?return_to=%2F7" class="theme_choice theme_choice_custom current_theme">Custom…</a></div></details>`) {
+		t.Error("the drawer does not mark Custom as active")
+	}
+	if plain := render(t, Layout(Page{CSRF: "tok"})); strings.Contains(plain, "<style>") {
+		t.Error("without a palette a <style> is emitted")
+	}
+	mod := render(t, ModLayout(ModPage{Theme: "coffee", Palette: css, Screen: "panel"}))
+	if !has(mod, `<style>`+css+`</style>`) {
+		t.Error("the mod pages do not carry the custom palette")
+	}
+
+	e := Editor{ReturnTo: "/7", Active: true, Tile: "dark", Tiles: []string{"bg", "dark", "none"},
+		Image: "https://pics.example/t.png", Fit: "cover",
+		Fields: []EditorField{{Key: "accent", Label: "Accent", Value: "#112233"}}}
+	ed := render(t, ThemeEditor(page, e))
+	for _, want := range []string{
+		`<form action="/theme/custom" method="post"><input type="hidden" name="_csrf" value="tok"><input type="hidden" name="return_to" value="/7">`,
+		`<label class="theme_editor_row"><span>Accent</span><input type="color" name="accent" value="#112233"></label>`,
+		`<option value="dark" selected>dark</option>`,
+		`<form action="/theme/reset" method="post" class="theme_editor_reset">`,
+		`<input type="url" name="image" value="https://pics.example/t.png"`,
+		`<input type="radio" name="fit" value="cover" checked>`,
+		`<a href="/7" class="back_link">`,
+		`<p class="theme_editor_intro">Custom theme editor</p>`,
+	} {
+		if !has(ed, want) {
+			t.Errorf("editor lacks %s", want)
+		}
+	}
+	e.Active = false
+	if has(render(t, ThemeEditor(page, e)), "/theme/reset") {
+		t.Error("with no palette set there is nothing to reset")
 	}
 }

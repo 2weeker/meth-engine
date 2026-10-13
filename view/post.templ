@@ -1,6 +1,12 @@
 package view
 
+import "meth-enginev2/helper/tripcode"
+
 templ Post(v *PostView) {
+	@PostCard(v, true)
+}
+
+templ PostCard(v *PostView, nested bool) {
 	<details class={ "post", templ.KV("selected_post", v.Selected) } id={ "post-" + v.IDString() } open="true">
 		<summary class="post_header">
 			if v.Sage {
@@ -11,7 +17,7 @@ templ Post(v *PostView) {
 			}
 			<a href={ v.ReplyHref } id={ "reply-" + v.IDString() }>Reply</a>{ " " }
 			@PosterID(v)
-			if v.PosterID != "" {
+			if v.PosterID != "" || v.Tripcode != "" {
 				{ " " }
 			}
 			<span class="post_meta">
@@ -34,18 +40,24 @@ templ Post(v *PostView) {
 					>{ t.Name }</a>
 				}
 			</span>
+			if !nested {
+				@treeFolded(v)
+			}
 		</summary>
 		<div class={ "post_content", templ.KV("post_content_saged", v.Sage) }>
-			<p class="post_text">@templ.Raw(string(v.Message))</p>
+			<p class="post_text">
+				@templ.Raw(string(v.Message))
+			</p>
 			if len(v.Children) > 0 {
 				<div class="backlinks">
-					for _, c := range v.Children {
+					<span class="backlinks_label">Replies:</span>
+					for _, c := range replyOrder(v, nested) {
 						{ " " }
 						<a href={ "#post-" + c.IDString() } class="backlink backlink_reply">&gt;&gt;{ c.IDString() }</a>
 					}
 				</div>
 			}
-			if v.PosterID != "" || v.Sage {
+			if v.PosterID != "" || v.Tripcode != "" || v.Sage {
 				<div class="post_signature">
 					@PosterID(v)
 					if v.Sage {
@@ -54,18 +66,36 @@ templ Post(v *PostView) {
 				</div>
 			}
 		</div>
-		for _, c := range v.Children {
-			@Post(c)
+		if nested {
+			for _, c := range v.Children {
+				@PostCard(c, true)
+			}
 		}
 	</details>
 }
 
 templ PosterID(v *PostView) {
-	if v.PosterID != "" {
+	if v.Tripcode != "" {
+		if v.Name != "" {
+			<span class="post_author">{ v.Name }</span>{ " " }
+		}
+		if v.TripLink {
+			<a href={ templ.SafeURL(TripHref(v.Tripcode)) } class="post_tripcode" title="Every post with this tripcode">{ tripcode.Mark + v.Tripcode }</a>
+		} else {
+			<span class="post_tripcode" title="Tripcode">{ tripcode.Mark + v.Tripcode }</span>
+		}
+	} else if v.PosterID != "" {
 		if v.IDLink {
 			<a href={ "/id/" + v.PosterID } class="post_poster_id" title="Every post by this ID">ID:{ v.PosterID }</a>
 		} else {
 			<span class="post_poster_id">ID:{ v.PosterID }</span>
 		}
 	}
+}
+
+func replyOrder(v *PostView, nested bool) []*PostView {
+	if nested {
+		return v.Children
+	}
+	return OldestFirst(v.Children)
 }

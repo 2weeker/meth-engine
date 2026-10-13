@@ -10,6 +10,7 @@ import (
 	"meth-enginev2/handler"
 	"meth-enginev2/helper/auth"
 	"meth-enginev2/helper/tags"
+	"meth-enginev2/helper/tripcode"
 	"meth-enginev2/model"
 	"meth-enginev2/view"
 )
@@ -72,6 +73,12 @@ func (a *App) Index(w http.ResponseWriter, r *http.Request) error {
 		page.TagsHint = tagsHint(limits)
 	}
 	page.MaxChars = a.Cfg.MaxChars()
+	page.Tripcodes = a.Cfg.Tripcodes()
+	remembered := ""
+	if page.Tripcodes {
+		remembered = rememberedName(r)
+	}
+	page.Composer.Name = remembered
 	page.Placeholder = a.placeholder()
 	if msg := q.Get("msg"); msg != "" || q.Get("error") != "" {
 		errText := posterror.Message(q.Get("error"))
@@ -85,7 +92,7 @@ func (a *App) Index(w http.ResponseWriter, r *http.Request) error {
 				errText = posterror.TagsMessage(q.Get("error") == "taglong", limits.Max, limits.Length)
 			}
 		}
-		page.Composer = view.Composer{Open: true, Message: msg, Sage: q.Get("sage") == "true", Tags: q.Get("tags"), Error: errText}
+		page.Composer = view.Composer{Open: true, Message: msg, Sage: q.Get("sage") == "true", Tags: q.Get("tags"), Name: composerName(remembered, q.Get("name"), q.Get("kept") == "1"), Error: errText}
 	}
 	page.Stats = a.stats(ctx)
 	return a.html(w, r, view.Layout(page))
@@ -119,13 +126,33 @@ func (a *App) History(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		id = ""
 	}
+	return a.history(w, r, "ID:", r.PathValue("id"), posts)
+}
+
+var tripcodeRe = regexp.MustCompile(`^[A-Za-z0-9./]{10}$`)
+
+func (a *App) TripHistory(w http.ResponseWriter, r *http.Request) error {
+	code := r.PathValue("code")
+	var posts []model.Post
+	if tripcodeRe.MatchString(code) {
+		var err error
+		if posts, err = a.Store.PostsByTripcode(r.Context(), code); err != nil {
+			return err
+		}
+	}
+	return a.history(w, r, tripcode.Mark, code, posts)
+}
+
+func (a *App) history(w http.ResponseWriter, r *http.Request, prefix, asked string, posts []model.Post) error {
+	if posts == nil {
+		if r := []rune(asked); len(r) > 16 {
+			asked = string(r[:16])
+		}
+	}
+	label := prefix + asked
 	_, mod := a.modUser(r)
 	page := a.page(r)
-	page.History, page.Threads = id, view.History(posts, mod)
-	if id == "" {
-		asked := []rune(r.PathValue("id"))
-		page.History = string(asked[:min(len(asked), 16)])
-	}
-	page.Stats = strconv.Itoa(len(posts)) + " " + plural(len(posts), "post") + " by ID:" + page.History
+	page.History, page.Threads = label, view.History(posts, mod)
+	page.Stats = strconv.Itoa(len(posts)) + " " + plural(len(posts), "post") + " by " + label
 	return a.html(w, r, view.Layout(page))
 }

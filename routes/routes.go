@@ -10,6 +10,7 @@ import (
 
 	"meth-enginev2/controller"
 	"meth-enginev2/handler"
+	"meth-enginev2/helper/palette"
 	"meth-enginev2/helper/stylesheets"
 )
 
@@ -36,6 +37,10 @@ func Build(a *controller.App, assets fs.FS) http.Handler {
 	sheets, err := stylesheets.Build(assets, "static/css")
 	if err != nil {
 		log.Fatal(err)
+	}
+	a.Palettes = map[string]palette.Palette{}
+	for name, s := range sheets {
+		a.Palettes[strings.TrimSuffix(name, ".css")] = palette.Extract(s.Body)
 	}
 	mux.Handle("GET /css/{file}", h(func(w http.ResponseWriter, r *http.Request) error {
 		s, ok := sheets[r.PathValue("file")]
@@ -102,7 +107,12 @@ func Build(a *controller.App, assets fs.FS) http.Handler {
 	mux.Handle("POST /ban/delete", h(a.BanDelete))
 
 	mux.Handle("GET /style/{name}", h(a.SetTheme))
+	mux.Handle("GET /view/{mode}", h(a.SetView))
+	mux.Handle("GET /theme/custom", h(a.PaletteEditor))
+	mux.Handle("POST /theme/custom", h(a.SetPalette))
+	mux.Handle("POST /theme/reset", h(a.ResetPalette))
 	mux.Handle("GET /id/{id}", h(a.History))
+	mux.Handle("GET /trip/{code}", h(a.TripHistory))
 	mux.Handle("GET /b/{board}", h(a.OldBoard))
 	mux.Handle("GET /b/{board}/{id}", h(a.OldBoard))
 	mux.Handle("GET /overboard", h(a.OldBoard))

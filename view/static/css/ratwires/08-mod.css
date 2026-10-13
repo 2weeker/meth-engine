@@ -167,3 +167,37 @@
 		display: block;
 	}
 }
+
+.theme_editor_intro {
+	margin: 0 0 12px;
+}
+
+.theme_editor_row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 4px 0;
+}
+
+.theme_editor_row input[type=color] {
+	width: 56px;
+	height: 28px;
+	padding: 0;
+	border: 2px inset var(--theme-bevel-light);
+	background: none;
+}
+
+.theme_editor_reset {
+	margin-top: 10px;
+}
+
+.theme_editor_image input {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.theme_editor_fits {
+	display: flex;
+	gap: 12px;
+}

@@ -238,7 +238,7 @@ func ModFilter(p ModPage) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.FilterForm.Replacement)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 44, Col: 176}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 46, Col: 176}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 		if templ_7745c5c3_Err != nil {
@@ -251,7 +251,7 @@ func ModFilter(p ModPage) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.FilterForm.BanDays)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 47, Col: 167}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 49, Col: 167}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -264,7 +264,7 @@ func ModFilter(p ModPage) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.FilterForm.Note)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 49, Col: 145}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 51, Col: 145}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -277,7 +277,7 @@ func ModFilter(p ModPage) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.CSRF)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 53, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/mod_filter.templ`, Line: 56, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 		if templ_7745c5c3_Err != nil {

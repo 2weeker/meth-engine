@@ -46,6 +46,8 @@ type Site struct {
 
 	Tags *TagsSetting `yaml:"tags"`
 
+	Tripcodes *bool `yaml:"tripcodes"`
+
 	Webring []Link `yaml:"webring"`
 
 	Theme string `yaml:"theme"`
@@ -296,6 +298,8 @@ func (bt *TagsSetting) limits() TagLimits {
 	}
 	return l
 }
+
+func (c Config) Tripcodes() bool { return c.Site.Tripcodes != nil && *c.Site.Tripcodes }
 
 func (c Config) Tags() (TagLimits, bool) {
 	if c.Site.Tags != nil && c.Site.Tags.On {

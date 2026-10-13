@@ -158,7 +158,6 @@ func TestCaptchaSetting(t *testing.T) {
 		body       string
 		want, fail bool
 	}{
-
 		{"title: x", true, false},
 		{"title: x\ncaptcha: true", true, false},
 		{"title: x\ncaptcha: false", false, false},
@@ -166,7 +165,6 @@ func TestCaptchaSetting(t *testing.T) {
 		{"title: x\ncaptcha: banana", false, true},
 		{"title: x\ncaptcha: {enabled: true}", false, true},
 	} {
-
 		for _, env := range []string{"production", "development"} {
 			t.Setenv("METH_ENV", env)
 			cfg, err := Load(write(t, c.body))
@@ -322,7 +320,8 @@ func TestReport(t *testing.T) {
 	t.Setenv("METH_CAPTCHA_ENABLED", "")
 	c, err := Load(write(t, `max_chars: 2000
 captcha_post_limit: {posts: 2, within: 1m, wait: 10s}
-tags: {max: 2, length: 12}`))
+tags: {max: 2, length: 12}
+tripcodes: true`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -335,6 +334,7 @@ tags: {max: 2, length: 12}`))
 		"  post limit: 2 posts within 1m0s, then a 10s wait\n",
 		"  post length: 2000 characters\n",
 		"  tags: up to 2 of 12 characters\n",
+		"  tripcodes: on\n",
 		"  posts kept: 254, then the oldest is purged\n",
 	} {
 		if !strings.Contains(out, want) {

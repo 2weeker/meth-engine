@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"math"
@@ -15,6 +16,7 @@ import (
 	"meth-enginev2/helper/formatter"
 	"meth-enginev2/helper/posterid"
 	"meth-enginev2/helper/tags"
+	"meth-enginev2/helper/tripcode"
 	"meth-enginev2/model"
 	"meth-enginev2/view"
 )
@@ -37,6 +39,27 @@ func banExpiry(days int) *time.Time {
 	return &t
 }
 
+func (a *App) screen(ctx context.Context, ip string, isMod bool, text, where string) (out, code string, err error) {
+	res, err := a.Store.ApplyFilters(ctx, text)
+	if err != nil {
+		return text, "", err
+	}
+	switch res.Action {
+	case model.FilterBan:
+		if isMod {
+			return text, "filter", nil
+		}
+		if err := a.Store.CreateBan(ctx, ip, filterBanReason(res.By), "filter", banExpiry(res.BanDays)); err != nil {
+			return text, "", err
+		}
+		slog.Info("filter banned an address", "filter", res.By.ID, "ip", ip, "days", res.BanDays, "in", where)
+		return text, "banned", nil
+	case model.FilterReject:
+		return text, "filter", nil
+	}
+	return res.Message, "", nil
+}
+
 func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	ip := a.ClientIP(r)
@@ -53,6 +76,11 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 	if tagged {
 		tagsTyped = strings.TrimSpace(r.PostFormValue("tags"))
 	}
+	var name, trip, nameField string
+	if a.Cfg.Tripcodes() {
+		nameField = r.PostFormValue("name")
+		name, trip = tripcode.Parse(nameField)
+	}
 
 	refuse := func(code string, extra ...string) error {
 		q := url.Values{"msg": {msg}, "error": {code}}
@@ -64,6 +92,12 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 		}
 		if tagsTyped != "" {
 			q.Set("tags", tagsTyped)
+		}
+		if name != "" {
+			q.Set("name", name)
+			if nameField == rememberedName(r) {
+				q.Set("kept", "1")
+			}
 		}
 		path := "/"
 		if parent != nil {
@@ -97,6 +131,8 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 		return refuse("empty")
 	case utf8.RuneCountInString(msg) > a.Cfg.MaxChars():
 		return refuse("long")
+	case name != "" && trip == "":
+		return refuse("tripcode")
 	}
 	postTags, err := tags.Parse(tagsTyped, tagLimits.Max, tagLimits.Length)
 	switch {
@@ -110,58 +146,49 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 	} else if banned {
 		return refuse("banned")
 	}
-	filtered, err := a.Store.ApplyFilters(ctx, msg)
-	if err != nil {
+	message, code, err := a.screen(ctx, ip, isMod, msg, "message")
+	switch {
+	case err != nil:
 		return err
+	case code != "":
+		return refuse(code)
 	}
-	switch filtered.Action {
-	case model.FilterBan:
-		if isMod {
-			return refuse("filter")
-		}
-		if err := a.Store.CreateBan(ctx, ip, filterBanReason(filtered.By), "filter", banExpiry(filtered.BanDays)); err != nil {
-			return err
-		}
-		slog.Info("filter banned an address", "filter", filtered.By.ID, "ip", ip, "days", filtered.BanDays)
-		return refuse("banned")
-	case model.FilterReject:
-		return refuse("filter")
-	case model.FilterReplace:
-		filtered.Message = formatter.Tidy(filtered.Message)
+	if message != msg {
+		message = formatter.Tidy(message)
 		switch {
-		case filtered.Message == "":
+		case message == "":
 			return refuse("empty")
-		case utf8.RuneCountInString(filtered.Message) > a.Cfg.MaxChars():
+		case utf8.RuneCountInString(message) > a.Cfg.MaxChars():
 			return refuse("long")
 		}
 	}
 
 	if len(postTags) > 0 {
-		ft, err := a.Store.ApplyFilters(ctx, strings.Join(postTags, " "))
-		if err != nil {
+		out, code, err := a.screen(ctx, ip, isMod, strings.Join(postTags, " "), "tags")
+		switch {
+		case err != nil:
 			return err
+		case code != "":
+			return refuse(code)
 		}
-		switch ft.Action {
-		case model.FilterBan:
-			if isMod {
-				return refuse("filter")
-			}
-			if err := a.Store.CreateBan(ctx, ip, filterBanReason(ft.By), "filter", banExpiry(ft.BanDays)); err != nil {
-				return err
-			}
-			slog.Info("filter banned an address", "filter", ft.By.ID, "ip", ip, "days", ft.BanDays, "in", "tags")
-			return refuse("banned")
-		case model.FilterReject:
-			return refuse("filter")
-		case model.FilterReplace:
-			if postTags, err = tags.Parse(ft.Message, tagLimits.Max, tagLimits.Length); err != nil {
-				return refuse("taglong")
-			}
+		if postTags, err = tags.Parse(out, tagLimits.Max, tagLimits.Length); err != nil {
+			return refuse("taglong")
 		}
 	}
+	if name != "" {
+		out, code, err := a.screen(ctx, ip, isMod, name, "name")
+		switch {
+		case err != nil:
+			return err
+		case code != "":
+			return refuse(code)
+		}
+		name = tripcode.CleanName(out)
+	}
 
-	np := model.NewPost{ParentID: parent, Message: filtered.Message, Sage: sage, IP: ip,
-		PosterID: posterid.For(a.Cfg.PosterIDSecret, ip, time.Now()), MaxPosts: a.Cfg.Site.PostCap(), Tags: postTags}
+	np := model.NewPost{ParentID: parent, Message: message, Sage: sage, IP: ip,
+		PosterID: posterid.For(a.Cfg.PosterIDSecret, ip, time.Now()), MaxPosts: a.Cfg.Site.PostCap(), Tags: postTags,
+		Name: name, Tripcode: trip}
 	id, err := a.Store.CreatePost(ctx, np)
 	if errors.Is(err, model.ErrMissingParent) {
 		return refuse("missing")
@@ -171,6 +198,14 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 	}
 	if limitBursts {
 		a.Bursts.Posted(auth.AddressKey(ip))
+	}
+	if a.Cfg.Tripcodes() {
+		switch {
+		case trip != "":
+			a.rememberName(w, nameField)
+		case strings.TrimSpace(nameField) == "":
+			forgetName(w)
+		}
 	}
 	n := strconv.FormatInt(id, 10)
 	return redirect(w, r, "/"+n+"#reply-"+n)

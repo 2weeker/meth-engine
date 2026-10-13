@@ -1,0 +1,45 @@
+package view
+
+import "strconv"
+
+templ PostTree(p Page) {
+	<details class="post_tree" open>
+		<summary class="post_header tree_root">
+			if p.History != "" {
+				<a href="/">{ p.History }</a>
+			} else {
+				<a href="/">Post</a>
+			}
+		</summary>
+		if len(p.Threads) > 0 {
+			<div class="tree_children">
+				for _, t := range p.Threads {
+					@TreeNode(t)
+				}
+			</div>
+		} else if p.History != "" {
+			<p class="overboard_empty">No posts by { p.History }.</p>
+		}
+	</details>
+	<div class="tree_summary">{ p.Stats }</div>
+	@Webring(p.Site.Webring)
+}
+
+templ TreeNode(v *PostView) {
+	<div class="tree_node">
+		@PostCard(v, false)
+		if len(v.Children) > 0 {
+			<div class="tree_children">
+				for _, c := range OldestFirst(v.Children) {
+					@TreeNode(c)
+				}
+			</div>
+		}
+	</div>
+}
+
+templ treeFolded(v *PostView) {
+	if n := Descendants(v); n > 0 {
+		<span class="tree_folded" title="Replies hidden while this post is folded">+{ strconv.Itoa(n) }</span>
+	}
+}

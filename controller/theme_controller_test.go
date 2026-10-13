@@ -27,6 +27,8 @@ func TestSetThemeSetsCookieAndReturns(t *testing.T) {
 	for path, want := range map[string][2]string{
 		"/style/cyb?return_to=%2F7%3Ftag%3Dgo":         {"cyb", "/7?tag=go"},
 		"/style/bm?return_to=/id/abcdefgh":             {"meth", "/id/abcdefgh"},
+		"/style/bm?return_to=/trip/Wok%252FnZ.xw2":     {"meth", "/trip/Wok%2FnZ.xw2"},
+		"/style/bm?return_to=/trip/../mod":             {"meth", "/"},
 		"/style/nope?return_to=/mod/filter":            {"coffee", "/mod/filter"},
 		"/style/macos":                                 {"macos", "/"},
 		"/style/macos?return_to=https://evil.example/": {"macos", "/"},
@@ -55,5 +57,40 @@ func TestThemeFromCookie(t *testing.T) {
 	r.AddCookie(&http.Cookie{Name: themeCookie, Value: "../x"})
 	if got := a.theme(r); got != "ratwires" {
 		t.Errorf("bad cookie falls back to the site's theme: %q", got)
+	}
+}
+
+func TestSetViewSetsCookieAndReturns(t *testing.T) {
+	a := &App{}
+	mux := http.NewServeMux()
+	mux.Handle("GET /view/{mode}", handler.HTTP(a.SetView))
+	for path, want := range map[string][2]string{
+		"/view/flat?return_to=%2F7%3Ftag%3Dgo":       {"flat", "/7?tag=go"},
+		"/view/nested?return_to=/id/abcdefgh":        {"nested", "/id/abcdefgh"},
+		"/view/sideways":                             {"nested", "/"},
+		"/view/flat?return_to=https://evil.example/": {"flat", "/"},
+		"/view/flat?return_to=/view/nested":          {"flat", "/"},
+	} {
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+		res := w.Result()
+		got := "<none>"
+		for _, c := range res.Cookies() {
+			if c.Name == viewCookie {
+				got = c.Value
+			}
+		}
+		if loc := res.Header.Get("Location"); got != want[0] || loc != want[1] {
+			t.Errorf("%s: cookie %q location %q, want %q %q", path, got, loc, want[0], want[1])
+		}
+	}
+
+	r := httptest.NewRequest("GET", "/", nil)
+	if a.page(r).Flat {
+		t.Error("no cookie should be the nested board")
+	}
+	r.AddCookie(&http.Cookie{Name: viewCookie, Value: "flat"})
+	if !a.page(r).Flat {
+		t.Error("the flat cookie does not flatten the board")
 	}
 }

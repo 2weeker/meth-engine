@@ -34,7 +34,6 @@
 @import "./ratwires.css";
 
 :root {
-
 	--theme-text-strong: #000000;
 	--theme-text: #101014;
 	--theme-text-rgb: 16,16,20;
@@ -84,7 +83,6 @@ input, textarea, button {
 }
 
 :root {
-
 	--os9-window-bg: #dddddd;
 	--os9-frame-bg: #cccccc;
 	--os9-body-bg: #ffffff;
@@ -110,9 +108,9 @@ input, textarea, button {
 }
 
 @media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
-
 	.post,
-	.board_container > .root_post {
+	.board_container > .root_post,
+	.post_tree {
 		padding: 2px 4px 4px;
 		border: 1px solid #000;
 		border-radius: 0;
@@ -123,11 +121,13 @@ input, textarea, button {
 			inset -1px 0 0 #999, inset 0 -1px 0 #999;
 	}
 
-	.board_container > .root_post {
+	.board_container > .root_post,
+	.post_tree {
 		background-color: var(--os9-board-frame-bg);
 	}
 
-	.board_container > .root_post > .post_header {
+	.board_container > .root_post > .post_header,
+	.post_tree > .tree_root {
 		background-color: rgba(204,204,204,.6);
 	}
 
@@ -401,7 +401,6 @@ input, textarea, button {
 }
 
 @media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
-
 	.corner_controls {
 		top: 6px;
 	}
@@ -430,7 +429,8 @@ input, textarea, button {
 	.theme_handle:active,
 	.theme_switcher[open] > .theme_handle,
 	.corner_controls > .corner_button:active,
-	.corner_controls > .corner_button.current_overboard {
+	.corner_controls > .corner_button.current_overboard,
+	.corner_controls > .corner_button.flatten_on {
 		border-style: solid;
 		border-radius: 2px;
 		background: #666666;
@@ -462,7 +462,8 @@ input, textarea, button {
 }
 
 .post_header > a[id^="reply-"],
-.root_post > .post_header > a {
+.root_post > .post_header > a,
+.post_tree > .tree_root > a {
 	display: inline-block;
 	min-width: 48px;
 
@@ -481,25 +482,29 @@ input, textarea, button {
 }
 
 .post_header > a[id^="reply-"]:hover,
-.root_post > .post_header > a:hover {
+.root_post > .post_header > a:hover,
+.post_tree > .tree_root > a:hover {
 	text-decoration: none;
 }
 
 .post_header > a[id^="reply-"]:active,
-.root_post > .post_header > a:active {
+.root_post > .post_header > a:active,
+.post_tree > .tree_root > a:active {
 	background: #666666;
 	color: #fff;
 	box-shadow: inset 1px 1px 1px #333, inset -1px -1px 1px #999;
 }
 
 .post_header > a[id^="reply-"]:focus-visible,
-.root_post > .post_header > a:focus-visible {
+.root_post > .post_header > a:focus-visible,
+.post_tree > .tree_root > a:focus-visible {
 	outline: 2px solid var(--theme-accent);
 	outline-offset: 1px;
 }
 
 .post .post_poster_id,
-.post .post_meta {
+.post .post_meta,
+.post .tree_folded {
 	margin: 2px;
 	padding: 1px 4px;
 	border: 1px solid #000;

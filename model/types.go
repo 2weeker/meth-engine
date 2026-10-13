@@ -23,6 +23,9 @@ type Post struct {
 	UpdatedAt time.Time
 
 	Tags []string
+
+	Name     string
+	Tripcode string
 }
 
 type User struct {
@@ -75,4 +78,7 @@ type NewPost struct {
 	MaxPosts int
 
 	Tags []string
+
+	Name     string
+	Tripcode string
 }

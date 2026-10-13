@@ -28,6 +28,7 @@
 
 /* The tags field, on top of the message box: as wide as the form, which is
    as wide as the message box. */
+.form .post_name_input,
 .form .tags_input {
 	display: block;
 	box-sizing: border-box;
@@ -38,6 +39,7 @@
 @media (max-width: 768px), (orientation: landscape) and (max-height: 600px) {
 	/* The field takes a full row of its own above the message box, and
 	   dresses like it. */
+	.form .post_name_input,
 	.form .tags_input {
 		order: 0;
 		flex: 1 1 100%;

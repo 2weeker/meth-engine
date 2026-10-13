@@ -53,11 +53,16 @@ templ ModLogin(p ModPage) {
 
 templ ModPanel(p ModPage) {
 	<div class="panel">
-		<a href={ "/mod/delete?id=" + p.ID + "&ip=" + p.IP }>Delete posts</a><br/>
-		<a href={ "/mod/filter?id=" + p.ID + "&ip=" + p.IP }>Manage post filters</a><br/>
-		<a href={ "/mod/ban?id=" + p.ID + "&ip=" + p.IP }>Manage bans</a><br/>
-		<a href={ "/mod/user?id=" + p.ID + "&ip=" + p.IP }>Manage admin users</a><br/>
-		<a href={ "/mod/tags?id=" + p.ID + "&ip=" + p.IP }>Manage tags</a><br/>
+		<a href={ "/mod/delete?id=" + p.ID + "&ip=" + p.IP }>Delete posts</a>
+		<br/>
+		<a href={ "/mod/filter?id=" + p.ID + "&ip=" + p.IP }>Manage post filters</a>
+		<br/>
+		<a href={ "/mod/ban?id=" + p.ID + "&ip=" + p.IP }>Manage bans</a>
+		<br/>
+		<a href={ "/mod/user?id=" + p.ID + "&ip=" + p.IP }>Manage admin users</a>
+		<br/>
+		<a href={ "/mod/tags?id=" + p.ID + "&ip=" + p.IP }>Manage tags</a>
+		<br/>
 		<form action="/mod/logout" method="post">
 			<input type="hidden" name="_csrf" value={ p.CSRF }/>
 			<input type="submit" value="log out" id="log-out"/>

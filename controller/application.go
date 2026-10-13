@@ -16,6 +16,7 @@ import (
 	"meth-enginev2/handler"
 	"meth-enginev2/helper/auth"
 	"meth-enginev2/helper/captcha/captchav1"
+	"meth-enginev2/helper/palette"
 	"meth-enginev2/model"
 	"meth-enginev2/view"
 )
@@ -31,6 +32,8 @@ type App struct {
 	Bursts                              *auth.Bursts
 
 	Ready func(context.Context) (ping, rtt time.Duration, err error)
+
+	Palettes map[string]palette.Palette
 }
 
 const sessionCookie = "session"
@@ -122,6 +125,7 @@ func (a *App) setCookie(w http.ResponseWriter, name, value string, ttl time.Dura
 
 func (a *App) html(w http.ResponseWriter, r *http.Request, c templ.Component) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "private, no-cache")
 	return c.Render(r.Context(), w)
 }
 

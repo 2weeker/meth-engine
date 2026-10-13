@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const postCols = `id, parent_id, message, sage, COALESCE(ip_address,''), poster_id, last_reply, created_at, updated_at, tags`
+const postCols = `id, parent_id, message, sage, COALESCE(ip_address,''), poster_id, last_reply, created_at, updated_at, tags, name, tripcode`
 
 func scanPost(r interface{ Scan(...any) error }) (*Post, error) {
 	var p Post
-	if err := r.Scan(&p.ID, &p.ParentID, &p.Message, &p.Sage, &p.IPAddress, &p.PosterID, &p.LastReply, &p.CreatedAt, &p.UpdatedAt, &p.Tags); err != nil {
+	if err := r.Scan(&p.ID, &p.ParentID, &p.Message, &p.Sage, &p.IPAddress, &p.PosterID, &p.LastReply, &p.CreatedAt, &p.UpdatedAt, &p.Tags, &p.Name, &p.Tripcode); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
@@ -55,7 +55,6 @@ func (s *Store) PostCount(ctx context.Context) (int, error) {
 }
 
 func (s *Store) CreatePost(ctx context.Context, np NewPost) (int64, error) {
-
 	if np.MaxPosts < 1 {
 		return 0, fmt.Errorf("model: CreatePost needs MaxPosts of at least 1, not %d", np.MaxPosts)
 	}
@@ -88,9 +87,9 @@ func (s *Store) CreatePost(ctx context.Context, np NewPost) (int64, error) {
 	if tags == nil {
 		tags = []string{}
 	}
-	if err := tx.QueryRow(ctx, `INSERT INTO posts (parent_id, message, sage, ip_address, poster_id, tags)
-		VALUES ($1,$2,$3,NULLIF($4,''),$5,$6) RETURNING id`,
-		np.ParentID, np.Message, np.Sage, np.IP, np.PosterID, tags).Scan(&id); err != nil {
+	if err := tx.QueryRow(ctx, `INSERT INTO posts (parent_id, message, sage, ip_address, poster_id, tags, name, tripcode)
+		VALUES ($1,$2,$3,NULLIF($4,''),$5,$6,$7,$8) RETURNING id`,
+		np.ParentID, np.Message, np.Sage, np.IP, np.PosterID, tags, np.Name, np.Tripcode).Scan(&id); err != nil {
 		return 0, err
 	}
 
@@ -133,6 +132,17 @@ func (s *Store) CreatePost(ctx context.Context, np NewPost) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (s *Store) PostsByTripcode(ctx context.Context, code string) ([]Post, error) {
+	if code == "" {
+		return nil, nil
+	}
+	rows, err := s.db.Query(ctx, `SELECT `+postCols+` FROM posts WHERE tripcode=$1 ORDER BY created_at DESC, id DESC`, code)
+	if err != nil {
+		return nil, err
+	}
+	return s.collectPosts(rows)
 }
 
 func (s *Store) PostsByPosterID(ctx context.Context, id string) ([]Post, error) {
