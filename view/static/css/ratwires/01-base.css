@@ -230,6 +230,16 @@ input[type=button]:hover, input[type=submit]:hover {
 	border-color: var(--theme-accent);
 }
 
+@media (min-width: 769px) and (min-height: 601px), (min-width: 769px) and (orientation: portrait) {
+	.post > .post {
+		margin: 0 .75em 1em .75em;
+	}
+
+	.post > .post:first-of-type {
+		margin-top: .25em;
+	}
+}
+
 .greentext {
 	color: var(--theme-greentext);
 }
