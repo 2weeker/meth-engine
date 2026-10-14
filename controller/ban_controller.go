@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"meth-enginev2/helper/netban"
 	"meth-enginev2/view"
 )
 
@@ -26,17 +27,31 @@ func (a *App) BanScreen(w http.ResponseWriter, r *http.Request) error {
 	return a.banScreen(w, r, "")
 }
 
+func banTarget(raw string, wide bool, self string) (string, string) {
+	if strings.TrimSpace(raw) == "" {
+		return "", "Enter an address"
+	}
+	entry, err := netban.Normalize(raw)
+	if err != nil {
+		return "", "Not banned: " + err.Error()
+	}
+	if wide {
+		entry = netban.Widen(entry, 64)
+	}
+	if netban.Covers(entry, self) {
+		return "", "You cannot ban yourself"
+	}
+	return entry, ""
+}
+
 func (a *App) BanCreate(w http.ResponseWriter, r *http.Request) error {
 	user, err := a.guard(w, r)
 	if err != nil {
 		return guarded(err)
 	}
-	ip := strings.TrimSpace(r.PostFormValue("ip_address"))
-	if ip == "" {
-		return a.banScreen(w, r, "Enter an address")
-	}
-	if ip == a.ClientIP(r) {
-		return a.banScreen(w, r, "You cannot ban yourself")
+	ip, status := banTarget(r.PostFormValue("ip_address"), r.PostFormValue("range") == "64", a.ClientIP(r))
+	if status != "" {
+		return a.banScreen(w, r, status)
 	}
 	var expires *time.Time
 	if days, err := strconv.Atoi(r.PostFormValue("days")); err == nil && days > 0 {
@@ -53,7 +68,11 @@ func (a *App) BanDelete(w http.ResponseWriter, r *http.Request) error {
 	if _, err := a.guard(w, r); err != nil {
 		return guarded(err)
 	}
-	if err := a.Store.DeleteBan(r.Context(), strings.TrimSpace(r.PostFormValue("ip_address"))); err != nil {
+	entry := strings.TrimSpace(r.PostFormValue("ip_address"))
+	if n, err := netban.Normalize(entry); err == nil {
+		entry = n
+	}
+	if err := a.Store.DeleteBan(r.Context(), entry); err != nil {
 		return a.banScreen(w, r, "No such ban")
 	}
 	return a.banScreen(w, r, "Ban removed")

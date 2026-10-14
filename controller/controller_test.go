@@ -522,3 +522,30 @@ func TestPaletteStoresOnlyChanges(t *testing.T) {
 		t.Errorf("only the changed colour should be kept: %+v", got)
 	}
 }
+
+func TestBanTarget(t *testing.T) {
+	for _, c := range []struct {
+		raw    string
+		wide   bool
+		self   string
+		entry  string
+		status string
+	}{
+		{"203.0.113.7", false, "198.51.100.1", "203.0.113.7", ""},
+		{"203.0.113.7/24", false, "198.51.100.1", "203.0.113.0/24", ""},
+		{"2001:db8:1:2::9", true, "198.51.100.1", "2001:db8:1:2::/64", ""},
+		{"2001:db8:1:2::9", false, "198.51.100.1", "2001:db8:1:2::9", ""},
+		{"203.0.113.7", true, "198.51.100.1", "203.0.113.7", ""},
+		{"", false, "198.51.100.1", "", "Enter an address"},
+		{"banana", false, "198.51.100.1", "", "Not banned: not an address or a range like 2001:db8::/64"},
+		{"10.0.0.0/8", false, "198.51.100.1", "", "Not banned: an IPv4 range wider than /16 is too broad to ban"},
+		{"198.51.100.1", false, "198.51.100.1", "", "You cannot ban yourself"},
+		{"198.51.100.0/24", false, "198.51.100.1", "", "You cannot ban yourself"},
+		{"2001:db8:1:2::9", true, "2001:db8:1:2::abcd", "", "You cannot ban yourself"},
+	} {
+		entry, status := banTarget(c.raw, c.wide, c.self)
+		if entry != c.entry || status != c.status {
+			t.Errorf("banTarget(%q, %v, %q) = %q, %q; want %q, %q", c.raw, c.wide, c.self, entry, status, c.entry, c.status)
+		}
+	}
+}

@@ -3,6 +3,8 @@ package model
 import (
 	"context"
 	"time"
+
+	"meth-enginev2/helper/netban"
 )
 
 func (s *Store) Bans(ctx context.Context) ([]Ban, error) {
@@ -23,9 +25,21 @@ func (s *Store) Bans(ctx context.Context) ([]Ban, error) {
 }
 
 func (s *Store) Banned(ctx context.Context, ip string) (bool, error) {
-	var banned bool
-	err := s.db.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM bans WHERE ip_address=$1 AND (expires_at IS NULL OR expires_at > now()))`, ip).Scan(&banned)
-	return banned, err
+	rows, err := s.db.Query(ctx, `SELECT ip_address FROM bans WHERE expires_at IS NULL OR expires_at > now()`)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var entry string
+		if err := rows.Scan(&entry); err != nil {
+			return false, err
+		}
+		if netban.Covers(entry, ip) {
+			return true, nil
+		}
+	}
+	return false, rows.Err()
 }
 
 func (s *Store) CreateBan(ctx context.Context, ip, reason, by string, expires *time.Time) error {

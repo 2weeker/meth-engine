@@ -57,7 +57,7 @@
 	}
 
 	.post_tree > .tree_children {
-		padding: .5em;
+		padding: .75em .75em 0;
 	}
 
 	.tree_root {
@@ -125,7 +125,7 @@
 		width: fit-content;
 		min-width: min(20em, 100%);
 		max-width: 100%;
-		margin: 0 0 .4em;
+		margin: 0 0 .75em;
 	}
 
 	.post_tree .post:target {

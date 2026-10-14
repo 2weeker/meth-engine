@@ -36,7 +36,8 @@ templ ModBan(p ModPage) {
 		</form>
 		<form action="/ban/create" method="post">
 			<input type="hidden" name="_csrf" value={ p.CSRF }/>
-			<input type="text" name="ip_address" id="ip_address_new" placeholder="ip address" value={ p.IP }/>
+			<input type="text" name="ip_address" id="ip_address_new" placeholder="ip address or range, e.g. 2001:db8::/64" value={ p.IP }/>
+			<label class="ban_range"><input type="checkbox" name="range" value="64"/>{ " " }IPv6: the whole /64</label>
 			<input type="text" name="reason" id="reason" placeholder="reason (optional)"/>
 			<input type="number" name="days" id="days" placeholder="days (blank = permanent)" min="1"/>
 			<input type="submit" value="create" id="create"/>

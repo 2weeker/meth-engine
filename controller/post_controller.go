@@ -49,7 +49,7 @@ func (a *App) screen(ctx context.Context, ip string, isMod bool, text, where str
 		if isMod {
 			return text, "filter", nil
 		}
-		if err := a.Store.CreateBan(ctx, ip, filterBanReason(res.By), "filter", banExpiry(res.BanDays)); err != nil {
+		if err := a.Store.CreateBan(ctx, auth.AddressKey(ip), filterBanReason(res.By), "filter", banExpiry(res.BanDays)); err != nil {
 			return text, "", err
 		}
 		slog.Info("filter banned an address", "filter", res.By.ID, "ip", ip, "days", res.BanDays, "in", where)
