@@ -10,8 +10,6 @@ type Editor struct {
 	Fields   []EditorField
 	Tile     string
 	Tiles    []string
-	Image    string
-	Fit      string
 	ReturnTo string
 	Active   bool
 	Invalid  bool
@@ -53,17 +51,6 @@ templ ThemeEditor(p Page, e Editor) {
 								}
 							</select>
 						</label>
-						<label class="theme_editor_row theme_editor_image">
-							<span>Background image address</span>
-							<input type="url" name="image" value={ e.Image } placeholder="https://… (optional)" maxlength="2000" autocomplete="off" spellcheck="false"/>
-						</label>
-						<div class="theme_editor_row">
-							<span>Image fit</span>
-							<span class="theme_editor_fits">
-								<label><input type="radio" name="fit" value="tile" checked?={ e.Fit != "cover" }/>{ " " }tiled</label>
-								<label><input type="radio" name="fit" value="cover" checked?={ e.Fit == "cover" }/>{ " " }fill the page</label>
-							</span>
-						</div>
 						<input type="submit" value="apply"/>
 					</form>
 					if e.Active {

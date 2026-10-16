@@ -91,7 +91,6 @@
 	margin-top: 4px;
 }
 
-
 /* --- the filter screen ------------------------------------------------------
    Six columns do not fit the panel's 32em, so this panel is wider. The
    headings never break inside a word, and on a phone the table scrolls
@@ -192,12 +191,3 @@
 	margin-top: 10px;
 }
 
-.theme_editor_image input {
-	flex: 1 1 auto;
-	min-width: 0;
-}
-
-.theme_editor_fits {
-	display: flex;
-	gap: 12px;
-}

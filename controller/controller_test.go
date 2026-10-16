@@ -328,6 +328,16 @@ func TestNameNeedsTripcode(t *testing.T) {
 	}
 }
 
+func TestLinksRefused(t *testing.T) {
+	a := &App{}
+	for _, msg := range []string{"see http://x.y", "HTTPS://x.y/a", "a\nhttp://b"} {
+		_, u := postForm(t, a, url.Values{"msg": {msg}})
+		if q := u.Query(); q.Get("error") != "link" || q.Get("msg") != msg {
+			t.Errorf("%q: redirected to %s, want a link error with the draft", msg, u)
+		}
+	}
+}
+
 func TestNameCookie(t *testing.T) {
 	a := &App{}
 	for _, field := range []string{"Anon#tea", "名無し#ﾃｽﾄ", "a b#c,d;e\"f"} {
@@ -405,7 +415,7 @@ func TestPalette(t *testing.T) {
 		return w.Result()
 	}
 
-	res := post("/theme/custom", url.Values{"accent": {"#112233"}, "tile": {"dark"}, "image": {"https://pics.example/t.png"}, "fit": {"cover"}, "return_to": {"/7?tag=go"}})
+	res := post("/theme/custom", url.Values{"accent": {"#112233"}, "tile": {"dark"}, "return_to": {"/7?tag=go"}})
 	var set *http.Cookie
 	for _, c := range res.Cookies() {
 		if c.Name == paletteCookie {
@@ -420,7 +430,7 @@ func TestPalette(t *testing.T) {
 	}
 	r := httptest.NewRequest("GET", "/", nil)
 	r.AddCookie(set)
-	if css := a.customPalette(r).CSS(); css != `:root{--theme-accent:#112233;--theme-accent-rgb:17,34,51;--theme-background-image:url("https://pics.example/t.png");}body{background-size:cover;background-repeat:no-repeat;background-position:center;background-attachment:fixed;}` {
+	if css := a.customPalette(r).CSS(); css != ":root{--theme-accent:#112233;--theme-accent-rgb:17,34,51;--theme-background-image:url(/assets/dark.png);}" {
 		t.Errorf("cookie gives %s", css)
 	}
 	if p := a.page(r); p.Palette == "" || !p.Custom {
@@ -463,7 +473,7 @@ func TestPalette(t *testing.T) {
 	}
 	r.AddCookie(set)
 	e = a.editor(r)
-	if !e.Active || e.Tile != "dark" || e.Image != "https://pics.example/t.png" || e.Fit != "cover" || e.Fields[8].Key != "accent" || e.Fields[8].Value != "#112233" || e.Fields[0].Value != "#f2dfc6" {
+	if !e.Active || e.Tile != "dark" || e.Fields[8].Key != "accent" || e.Fields[8].Value != "#112233" || e.Fields[0].Value != "#f2dfc6" {
 		t.Errorf("editor with a palette set: %+v", e)
 	}
 }

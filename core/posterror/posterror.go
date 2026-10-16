@@ -16,6 +16,7 @@ var messages = map[string]string{
 	"taglong":     "A tag is too long",
 	"invalid":     "Post rejected",
 	"tripcode":    "Tripcode for name required.",
+	"link":        "Links are not allowed",
 }
 
 func Message(code string) string { return messages[code] }

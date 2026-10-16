@@ -42,54 +42,13 @@ func TestParseAndRoundTrip(t *testing.T) {
 	}
 }
 
-func TestImageURL(t *testing.T) {
-	for _, c := range []struct{ in, want string }{
-		{"https://pics.example/tile.png", "https://pics.example/tile.png"},
-		{"  https://pics.example/a%20b.png?x=1&y=2#f ", "https://pics.example/a%20b.png?x=1&y=2#f"},
-		{"https://pics.example/a b.png", "https://pics.example/a%20b.png"},
-		{`https://pics.example/a")}body{display:none}`, "https://pics.example/a%22%29%7Dbody%7Bdisplay:none%7D"},
-		{"https://pics.example/a\\b.png", "https://pics.example/a%5Cb.png"},
-		{"", ""},
-	} {
-		got, err := ImageURL(c.in)
-		if err != nil || got != c.want {
-			t.Errorf("ImageURL(%q) = %q, %v; want %q", c.in, got, err, c.want)
-		}
-		if strings.ContainsAny(got, "\"'()\\ \n") {
-			t.Errorf("ImageURL(%q) = %q can break out of url(\"...\")", c.in, got)
-		}
-	}
-	for _, bad := range []string{
-		"http://pics.example/tile.png",
-		"javascript:alert(1)",
-		"data:image/png;base64,AAAA",
-		"//pics.example/tile.png",
-		"https:///tile.png",
-		"https://user:pw@pics.example/tile.png",
-		"https://pics.example/a'b.png",
-		"https://pics.example/(a).png",
-		"https://pics.example/" + strings.Repeat("a", MaxImageURL),
-	} {
-		if got, err := ImageURL(bad); err == nil {
-			t.Errorf("ImageURL(%q) accepted as %q", bad, got)
-		}
-	}
+func TestImageFieldsIgnored(t *testing.T) {
 	p, err := Parse(url.Values{"image": {"https://pics.example/t.png"}, "fit": {"cover"}, "tile": {"dark"}})
-	if err != nil || p.Image != "https://pics.example/t.png" || p.Fit != "cover" {
-		t.Fatalf("parsed %+v, %v", p, err)
+	if err != nil || p.Tile != "dark" || p.CSS() != ":root{--theme-background-image:url(/assets/dark.png);}" {
+		t.Errorf("old image fields change the palette: %+v, %v", p, err)
 	}
-	back := Decode(p.Encode())
-	if back.Image != p.Image || back.Fit != "cover" || back.Tile != "dark" {
-		t.Errorf("round trip %+v", back)
-	}
-	if got := p.CSS(); got != `:root{--theme-background-image:url("https://pics.example/t.png");}body{background-size:cover;background-repeat:no-repeat;background-position:center;background-attachment:fixed;}` {
-		t.Errorf("cover CSS: %s", got)
-	}
-	if p, _ := Parse(url.Values{"fit": {"cover"}}); p.Fit != "" || !p.Empty() {
-		t.Errorf("fit without an image means nothing: %+v", p)
-	}
-	if _, err := Parse(url.Values{"image": {"https://x.example/"}, "fit": {"stretch"}}); err == nil {
-		t.Error("an unknown fit is accepted")
+	if p, _ := Parse(url.Values{"image": {"https://pics.example/t.png"}}); !p.Empty() {
+		t.Errorf("an image alone is not empty: %+v", p)
 	}
 }
 

@@ -11,19 +11,20 @@ type Links struct {
 }
 
 var (
-	urlRe   = regexp.MustCompile(`((?:\w+://)[\w./%\-:/=#?&]+)`)
-	greenRe = regexp.MustCompile(`(?m)^&gt;(.*?)$`)
-	blueRe  = regexp.MustCompile(`(?m)^&lt;(.*?)$`)
-	escaper = strings.NewReplacer(">", "&gt;", "<", "&lt;", "+", "&#43;")
+	linkedRe = regexp.MustCompile(`(?i)https?://`)
+	greenRe  = regexp.MustCompile(`(?m)^&gt;(.*?)$`)
+	blueRe   = regexp.MustCompile(`(?m)^&lt;(.*?)$`)
+	escaper  = strings.NewReplacer(">", "&gt;", "<", "&lt;", "+", "&#43;")
 
 	linkRe = regexp.MustCompile(`&gt;&gt;([0-9]+)`)
 )
 
 func Escape(s string) string { return escaper.Replace(s) }
 
+func HasLink(s string) bool { return linkedRe.MatchString(s) }
+
 func Format(s string, l Links) string {
 	e := Escape(Tidy(s))
-	e = urlRe.ReplaceAllString(e, `<a href="${1}">${1}</a>`)
 	e = wrapPairs(e, "[[", "]]", "<button>", "</button>")
 	e = postLinks(e, l)
 	e = greenRe.ReplaceAllString(e, `<span class="greentext">&gt;${1}</span>`)

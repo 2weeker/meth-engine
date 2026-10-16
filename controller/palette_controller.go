@@ -43,7 +43,6 @@ func (a *App) editor(r *http.Request) view.Editor {
 	if e.Tile == "" {
 		e.Tile = "bg"
 	}
-	e.Image, e.Fit = custom.Image, custom.Fit
 	return e
 }
 

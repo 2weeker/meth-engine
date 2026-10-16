@@ -111,6 +111,10 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 		return refuse("invalid")
 	}
 
+	if formatter.HasLink(msg) || formatter.HasLink(name) || formatter.HasLink(tagsTyped) {
+		return refuse("link")
+	}
+
 	_, isMod := a.modUser(r)
 	limitBursts := !isMod
 	if limitBursts {
@@ -160,6 +164,8 @@ func (a *App) CreatePost(w http.ResponseWriter, r *http.Request) error {
 			return refuse("empty")
 		case utf8.RuneCountInString(message) > a.Cfg.MaxChars():
 			return refuse("long")
+		case formatter.HasLink(message):
+			return refuse("link")
 		}
 	}
 

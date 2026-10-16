@@ -17,7 +17,7 @@ func TestFormat(t *testing.T) {
 		{"red spoiler 3d glow", "==r== %%s%% ^^t^^ !!g!!", `<span class="redtext">r</span> <span class="spoiler">s</span> <span class="threedtext">t</span> <span class="glow">g</span>`},
 		{"button", "[[go]]", "<button>go</button>"},
 		{"button cannot cross a line", "[[a\nb]]", "[[a<br/>b]]"},
-		{"url with query and ampersand", "see http://x.y/a?b=1&c=2 ok", `see <a href="http://x.y/a?b=1&c=2">http://x.y/a?b=1&c=2</a> ok`},
+		{"urls stay plain text", "see http://x.y/a?b=1&c=2 ok", "see http://x.y/a?b=1&c=2 ok"},
 		{"backslashes are stripped", `a\\b`, "ab"},
 
 		{"escaped bold still italicises (original behaviour)", `\**not**`, "*<i>not</i>*"},
@@ -28,6 +28,14 @@ func TestFormat(t *testing.T) {
 	for _, c := range cases {
 		if got := Format(c.in, Links{}); got != c.want {
 			t.Errorf("%s:\n  in   %q\n  want %q\n  got  %q", c.name, c.in, c.want, got)
+		}
+	}
+}
+
+func TestHasLink(t *testing.T) {
+	for in, want := range map[string]bool{"go to http://x.y": true, "HTTPS://X.Y": true, "ftp://x.y": false, "http:/x": false, "see x.y": false, "": false} {
+		if got := HasLink(in); got != want {
+			t.Errorf("HasLink(%q) = %v, want %v", in, got, want)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package palette
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -37,25 +36,15 @@ var withRGB = map[string]bool{"text": true, "accent": true, "chrome": true, "fra
 
 var Tiles = []string{"bg", "meth", "dark", "coffee", "macos", "angelic", "none"}
 
-const (
-	TileKey  = "tile"
-	ImageKey = "image"
-	FitKey   = "fit"
-)
-
-const MaxImageURL = 2000
-
-var Fits = []string{"tile", "cover"}
+const TileKey = "tile"
 
 type Palette struct {
 	Colors map[string]string
 	Tile   string
-	Image  string
-	Fit    string
 }
 
 func (p Palette) Over(base Palette) Palette {
-	out := Palette{Colors: map[string]string{}, Tile: p.Tile, Image: p.Image, Fit: p.Fit}
+	out := Palette{Colors: map[string]string{}, Tile: p.Tile}
 	for k, v := range p.Colors {
 		if base.Colors[k] != v {
 			out.Colors[k] = v
@@ -67,28 +56,7 @@ func (p Palette) Over(base Palette) Palette {
 	return out
 }
 
-func (p Palette) Empty() bool { return len(p.Colors) == 0 && p.Tile == "" && p.Image == "" }
-
-var imageRe = regexp.MustCompile(`^https://[A-Za-z0-9._~:/?#\[\]@!$&*+,;=%-]+$`)
-
-func ImageURL(s string) (string, error) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "", nil
-	}
-	if len(s) > MaxImageURL {
-		return "", fmt.Errorf("the image address is longer than %d characters", MaxImageURL)
-	}
-	u, err := url.Parse(s)
-	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil {
-		return "", errors.New("the image address must start with https:// and name a host")
-	}
-	s = u.String()
-	if !imageRe.MatchString(s) {
-		return "", errors.New("the image address holds characters that cannot be used")
-	}
-	return s, nil
-}
+func (p Palette) Empty() bool { return len(p.Colors) == 0 && p.Tile == "" }
 
 var hexRe = regexp.MustCompile(`^#[0-9a-f]{6}$`)
 
@@ -153,19 +121,6 @@ func Parse(form url.Values) (Palette, error) {
 		}
 		p.Tile = t
 	}
-	img, err := ImageURL(form.Get(ImageKey))
-	if err != nil {
-		return Palette{}, err
-	}
-	p.Image = img
-	if f := form.Get(FitKey); f != "" {
-		if f != "tile" && f != "cover" {
-			return Palette{}, fmt.Errorf("fit %q is not tile or cover", f)
-		}
-		if p.Image != "" {
-			p.Fit = f
-		}
-	}
 	return p, nil
 }
 
@@ -178,12 +133,6 @@ func (p Palette) Encode() string {
 	}
 	if p.Tile != "" {
 		v.Set(TileKey, p.Tile)
-	}
-	if p.Image != "" {
-		v.Set(ImageKey, p.Image)
-		if p.Fit != "" {
-			v.Set(FitKey, p.Fit)
-		}
 	}
 	return v.Encode()
 }
@@ -225,8 +174,6 @@ func (p Palette) CSS() string {
 		}
 	}
 	switch {
-	case p.Image != "":
-		fmt.Fprintf(&b, "--theme-background-image:url(%q);", p.Image)
 	case p.Tile == "":
 	case p.Tile == "none":
 		b.WriteString("--theme-background-image:none;")
@@ -234,9 +181,6 @@ func (p Palette) CSS() string {
 		fmt.Fprintf(&b, "--theme-background-image:url(/assets/%s.png);", p.Tile)
 	}
 	b.WriteString("}")
-	if p.Image != "" && p.Fit == "cover" {
-		b.WriteString("body{background-size:cover;background-repeat:no-repeat;background-position:center;background-attachment:fixed;}")
-	}
 	return b.String()
 }
 

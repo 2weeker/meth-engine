@@ -606,7 +606,6 @@ func TestCustomPalette(t *testing.T) {
 	}
 
 	e := Editor{ReturnTo: "/7", Active: true, Tile: "dark", Tiles: []string{"bg", "dark", "none"},
-		Image: "https://pics.example/t.png", Fit: "cover",
 		Fields: []EditorField{{Key: "accent", Label: "Accent", Value: "#112233"}}}
 	ed := render(t, ThemeEditor(page, e))
 	for _, want := range []string{
@@ -614,14 +613,15 @@ func TestCustomPalette(t *testing.T) {
 		`<label class="theme_editor_row"><span>Accent</span><input type="color" name="accent" value="#112233"></label>`,
 		`<option value="dark" selected>dark</option>`,
 		`<form action="/theme/reset" method="post" class="theme_editor_reset">`,
-		`<input type="url" name="image" value="https://pics.example/t.png"`,
-		`<input type="radio" name="fit" value="cover" checked>`,
 		`<a href="/7" class="back_link">`,
 		`<p class="theme_editor_intro">Custom theme editor</p>`,
 	} {
 		if !has(ed, want) {
 			t.Errorf("editor lacks %s", want)
 		}
+	}
+	if has(ed, `name="image"`) || has(ed, `name="fit"`) {
+		t.Error("the editor still offers a background image")
 	}
 	e.Active = false
 	if has(render(t, ThemeEditor(page, e)), "/theme/reset") {
